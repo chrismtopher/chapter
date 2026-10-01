@@ -6,7 +6,6 @@
       .photo { opacity: 0.95; }
       .panel { fill: rgba(255, 255, 255, 0.88); stroke: #1f2933; stroke-width: 2; }
       .title { font: 700 32px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }
-      .subtitle { font: 19px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #374151; }
       .label-title { font: 700 25px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #111827; }
       .label { font: 19px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1f2937; }
       .small { font: 16px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #374151; }
@@ -23,10 +22,9 @@
   <rect width="1679" height="1003" fill="#c9d4d5"/>
   <image class="photo" href="images/case-rotary-encoder-cad-view.png" x="0" y="0" width="1679" height="1003" preserveAspectRatio="xMidYMid meet"/>
 
-  <rect x="32" y="30" width="590" height="106" rx="10" class="panel"/>
+  <rect x="32" y="30" width="655" height="92" rx="10" class="panel"/>
   <text x="58" y="72" class="title">Rotary Encoder Mount Layout</text>
-  <text x="58" y="105" class="subtitle">View from the x=0/front-side position into the open case</text>
-  <text x="58" y="129" class="small">Schematic placement guide only; not a drilling template.</text>
+  <text x="58" y="105" class="small">Mount holes: install M2.5 heat press threaded inserts; use M2.5x5 mm screws.</text>
 
   <!-- 5. Left KY-040 rotary encoder mount -->
   <rect x="854" y="184" width="204" height="230" rx="12" class="mount-area five" fill="#0891b2"/>
@@ -35,7 +33,7 @@
   <text x="747" y="205" class="badge-text">5</text>
   <rect x="662" y="226" width="318" height="86" rx="10" class="panel"/>
   <text x="687" y="260" class="label-title">5 Left KY-040 mount</text>
-  <text x="687" y="290" class="label">Rotary encoder module mount</text>
+  <text x="687" y="290" class="label">Rotary encoder mount holes</text>
 
   <!-- 6. Right KY-040 rotary encoder mount -->
   <rect x="1100" y="184" width="126" height="230" rx="12" class="mount-area six" fill="#db2777"/>
@@ -44,5 +42,5 @@
   <text x="1328" y="205" class="badge-text">6</text>
   <rect x="1224" y="226" width="328" height="86" rx="10" class="panel"/>
   <text x="1249" y="260" class="label-title">6 Right KY-040 mount</text>
-  <text x="1249" y="290" class="label">Rotary encoder module mount</text>
+  <text x="1249" y="290" class="label">Rotary encoder mount holes</text>
 </svg>

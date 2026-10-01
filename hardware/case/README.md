@@ -15,7 +15,7 @@ Printable STL files for the Chapter Player enclosure.
 
 ![Case back interior layout](case-back-interior-layout.svg)
 
-In the diagram, orange `4` marks the speaker mounting bosses for a Visaton FRWS 5 - 4 Ohm speaker. Use M2.5 brass threaded heat-set inserts with M2.5 x 5 mm screws for those speaker mounts.
+In the diagram, orange `4` marks the speaker mounting bosses for a Visaton FRWS 5 - 4 Ohm speaker. Install M2.5 heat press threaded inserts in the highlighted mounting holes and use M2.5x5 mm screws for mounting components.
 
 ![Rotary encoder mount layout](case-rotary-encoder-mount-layout.svg)
 
