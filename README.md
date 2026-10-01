@@ -45,6 +45,7 @@ Recommended build:
 - MAX98357A I2S mono amplifier breakout
 - 4 ohm speaker
 - Inline fuse on the USB-C 5 V positive lead
+- 3 mm warm-white power indicator LED for the lower-right front-cover hole
 - Cross-connect wires for component wiring
 
 The wiring tables are in the [install guide](docs/raspberry-pi-zero-2w-install.md#wire-the-hardware).

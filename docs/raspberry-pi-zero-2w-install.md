@@ -16,6 +16,7 @@ The software setup is handled by the installer. This guide covers the parts a ne
 - MAX98357A I2S mono amplifier breakout.
 - 4 ohm speaker.
 - Inline fuse for the USB-C 5 V positive lead.
+- 3 mm warm-white power indicator LED for the lower-right front-cover hole. The build uses the 5-6 V [Dioramo 13240](https://dioramo.com/products/13240).
 - Cross-connect wires or soldered wiring, plus an enclosure. The build uses [Amazon ASIN B01EV70C78](https://www.amazon.com/dp/B01EV70C78?th=1) for component wiring.
 
 For links to the recommended parts, see the [hardware links](hardware-links.md).
@@ -153,6 +154,26 @@ USB-C breakout GND  -> Raspberry Pi GND
 ```
 
 Any 5 V branch for the amp should be taken from the fused 5 V side. Do not put the fuse in series with `GND`, `D+`, or `D-`.
+
+### Power Indicator LED
+
+The small hole at the lower-right of the front cover, viewed from the outside, is for the power indicator. Insert the 3 mm LED into the hole from the back of the cover, then secure it with a small dab of hot glue. Keep glue away from the LED leads and wire joints.
+
+Splice the LED into the USB-C power wiring as a parallel branch after the fuse. It must not be placed in series with either power lead; the Pi must still have a direct fused 5 V and ground connection.
+
+The [Dioramo 13240](https://dioramo.com/products/13240) is rated for 5-6 V and has its current-limiting resistor already wired in. Its white-marked wire is the positive anode and its black wire is the negative cathode, so no additional resistor is required on Chapter's 5 V rail.
+
+```text
+Fused USB-C 5 V ----+------------------------> Raspberry Pi 5 V / amp 5 V
+                    |
+                    +-----------------------> Dioramo 13240 white-marked wire (+)
+
+USB-C GND ----------+------------------------> Raspberry Pi GND / amp GND
+                    |
+                    +-----------------------> Dioramo 13240 black wire (-)
+```
+
+The LED illuminates as soon as USB power is present, providing immediate feedback while the Pi boots and before the OLED service starts.
 
 ## First Boot
 

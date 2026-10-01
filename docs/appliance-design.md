@@ -209,6 +209,10 @@ USB-C GND  -> Pi GND / amp GND
 
 Do not put the fuse in series with `GND`, `D+`, or `D-`.
 
+The lower-right hole in the front cover is for a 3 mm warm-white power indicator. Insert the LED from the back and hold it in place with a small dab of hot glue. Splice it as a parallel branch across fused 5 V and ground between the USB-C port and Pi; never put the LED in series with the Pi's supply. The indicator lights immediately when USB power is present, before the OLED service is ready.
+
+The specified [Dioramo 13240](https://dioramo.com/products/13240) is rated for 5-6 V and includes its current-limiting resistor. Connect its white-marked anode wire directly to fused 5 V and its black cathode wire to ground; no additional resistor is required.
+
 This gives the appliance one USB-C port for power and USB 2.0 data/device access. The Pi Zero 2 WH has only one USB OTG data port, so avoid using the original micro-USB data port at the same time. If plugging into a computer for service access, configure the Pi for USB gadget mode, such as USB Ethernet/SSH. If plugging into only a charger, it will simply power the appliance.
 
 ## Sonos Stream Strategy
@@ -304,6 +308,7 @@ Use the current 3D printed prototype as the visual reference for future renders:
 - Warm tan/brown printed knobs with ridged/scalloped edges and textured top faces.
 - Large navigation knob on the lower-right/front, smaller volume knob above it.
 - OLED window on the upper-left/front with a black recessed display area and rounded rectangular cutout.
+- Small 3 mm power-indicator opening at the lower-right of the front cover.
 - Speaker grille on the lower-left/front, made from a dense grid of round holes.
 - Matching side ventilation/speaker-style hole grid on the right side panel.
 - Soft rounded outer corners and a gently rounded front perimeter.

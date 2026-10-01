@@ -14,6 +14,7 @@ Links may change over time; equivalent parts should also work if they match the 
 | MAX98357A I2S mono amplifier breakout | 1 | [Amazon ASIN B0GF67KXC3](https://www.amazon.com/dp/B0GF67KXC3?th=1) | Drives the internal speaker. |
 | Adafruit 5993 vertical USB-C breakout | 1 | [Adafruit product 5993](https://www.adafruit.com/product/5993) | Rear USB-C service/power port. |
 | Inline fuse for USB-C 5 V positive lead | 1 | [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P) | Install in series on the positive leg from the USB-C board before the Raspberry Pi 5 V input. |
+| 3 mm warm-white power indicator LED | 1 | [Dioramo 13240](https://dioramo.com/products/13240) | Fits the lower-right front-cover hole. This 5-6 V version includes its current-limiting resistor and connects directly across Chapter's fused 5 V and ground leads. |
 | Visaton FRWS 5 - 4 Ohm full-range speaker | 1 | [Parts Express 292-7820](https://www.parts-express.com/Visaton-FRWS5-4-2-Full-Range-Speaker-4-Ohm-292-7820?quantity=1) | Internal speaker. |
 | Cross-connect wiring | 1 set | [Amazon ASIN B01EV70C78](https://www.amazon.com/dp/B01EV70C78?th=1) | Used for wiring between the Raspberry Pi and the display, encoders, amp, USB-C board, and fuse. |
 

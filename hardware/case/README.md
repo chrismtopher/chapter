@@ -18,6 +18,8 @@ Printable STL files for the Chapter Player enclosure.
 
 In the front cover back-side diagram, blue `8` marks the OLED window. Slide the OLED into the window from the bottom. After you confirm the OLED is in the correct orientation, run a small bead of hot glue along the bottom edge, marked in orange as `9`, to keep it in place.
 
+The small hole at the lower-right of the front cover, as viewed from the outside, is for the 3 mm warm-white power indicator LED. Insert the LED into the hole from the back of the cover and secure it with a small dab of hot glue. The build uses the 5-6 V [Dioramo 13240](https://dioramo.com/products/13240); see the [install guide](../../docs/raspberry-pi-zero-2w-install.md#power-indicator-led) for its power wiring.
+
 ![Case back interior layout](case-back-interior-layout.jpg)
 
 In the diagram, orange `4` marks the speaker mounting bosses for a Visaton FRWS 5 - 4 Ohm speaker. Install M2.5 heat press threaded inserts in the highlighted mounting holes and use M2.5x5 mm screws for mounting components.
