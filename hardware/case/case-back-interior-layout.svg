@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 190 190" role="img" aria-labelledby="title desc">
+  <title id="title">Chapter Player case back interior layout</title>
+  <desc id="desc">Straight-on assembly diagram looking into the v5 case back from the open front side.</desc>
+  <defs>
+    <style>
+      .shell { fill: #f4f1eb; stroke: #333333; stroke-width: 2.4; }
+      .wall { fill: none; stroke: #4a4a4a; stroke-linecap: round; stroke-width: 3.2; }
+      .rib { fill: #65635f; opacity: 0.8; }
+      .part { fill: #e8f1fb; stroke: #2268a8; stroke-width: 0.7; stroke-dasharray: 2 1.4; }
+      .speaker { fill: #f4ebdf; stroke: #a86522; stroke-width: 0.7; stroke-dasharray: 2 1.4; }
+      .boss { fill: #e9e7e1; stroke: #beb9ae; stroke-width: 0.8; }
+      .case-insert { fill: #f8c15f; stroke: #6d4310; stroke-width: 0.8; }
+      .mount { fill: #b9d6ef; stroke: #214f7a; stroke-width: 0.7; }
+      .badge { fill: #ffffff; stroke: #333333; stroke-width: 0.45; }
+      .title { font: 700 5px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222222; }
+      .subtitle { font: 2.7px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #555555; }
+      .label { font: 2.7px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222222; }
+      .small { font: 2.25px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #555555; }
+      .tiny { font: 1.9px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #333333; }
+      .badge-text { font: 700 2.4px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222222; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+
+  <rect width="190" height="190" fill="#fbfaf7"/>
+  <text x="8" y="8" class="title">Case Back Interior Layout</text>
+  <text x="8" y="13" class="subtitle">View: looking straight into the back shell from the open/front side. Based on the v5 back STL.</text>
+
+  <!-- Case shell, approximate 170 mm x 100 mm orthographic projection. -->
+  <g id="case-back" transform="translate(10 20)">
+    <rect x="0" y="0" width="170" height="100" rx="10" ry="10" class="shell"/>
+    <path d="M 77 15 L 77 100" class="wall"/>
+    <path d="M 0 44 L 77 44" class="wall"/>
+    <rect x="106" y="0" width="7" height="18" class="rib"/>
+    <rect x="110" y="0" width="4" height="11" class="rib"/>
+    <rect x="141" y="0" width="8" height="18" class="rib"/>
+
+    <!-- 1. Raspberry Pi Zero 2 W / WH footprint. -->
+    <rect x="5" y="5" width="74" height="35" class="part"/>
+    <circle cx="10" cy="10" r="2.3" class="badge"/>
+    <text x="10" y="10" class="badge-text">1</text>
+    <text x="15" y="24" class="label">Raspberry Pi Zero 2 W/WH</text>
+    <circle cx="13" cy="11" r="3.1" class="boss"/>
+    <circle cx="71" cy="11" r="3.1" class="boss"/>
+    <circle cx="13" cy="34" r="3.1" class="boss"/>
+    <circle cx="71" cy="34" r="3.1" class="boss"/>
+    <circle cx="13" cy="11" r="1.45" class="mount"/>
+    <circle cx="71" cy="11" r="1.45" class="mount"/>
+    <circle cx="13" cy="34" r="1.45" class="mount"/>
+    <circle cx="71" cy="34" r="1.45" class="mount"/>
+
+    <!-- Front/back shell heat-set bosses. -->
+    <circle cx="20" cy="49" r="3.4" class="case-insert"/>
+    <circle cx="64" cy="49" r="3.4" class="case-insert"/>
+    <circle cx="20" cy="93" r="3.4" class="case-insert"/>
+    <circle cx="64" cy="93" r="3.4" class="case-insert"/>
+    <text x="18.2" y="50" class="tiny">H1</text>
+    <text x="62.2" y="50" class="tiny">H2</text>
+    <text x="18.2" y="94" class="tiny">H3</text>
+    <text x="62.2" y="94" class="tiny">H4</text>
+
+    <!-- 2. MAX98357A amp board footprint. -->
+    <rect x="124" y="37" width="29" height="14" class="part"/>
+    <circle cx="127.5" cy="40.5" r="2.3" class="badge"/>
+    <text x="127.5" y="40.5" class="badge-text">2</text>
+    <text x="126" y="35" class="tiny">MAX98357A amp</text>
+    <circle cx="131.5" cy="44" r="3.1" class="boss"/>
+    <circle cx="145" cy="44" r="3.1" class="boss"/>
+    <circle cx="131.5" cy="44" r="1.45" class="mount"/>
+    <circle cx="145" cy="44" r="1.45" class="mount"/>
+
+    <!-- 3. Speaker mount footprint in the right speaker chamber. -->
+    <rect x="116" y="66" width="47" height="28" class="speaker"/>
+    <circle cx="120" cy="70" r="2.3" class="badge"/>
+    <text x="120" y="70" class="badge-text">3</text>
+    <text x="128" y="64.5" class="tiny">4 ohm speaker</text>
+    <circle cx="125" cy="76" r="3.1" class="boss"/>
+    <circle cx="151" cy="76" r="3.1" class="boss"/>
+    <circle cx="125" cy="86" r="3.1" class="boss"/>
+    <circle cx="151" cy="86" r="3.1" class="boss"/>
+    <circle cx="125" cy="76" r="1.45" class="mount"/>
+    <circle cx="151" cy="76" r="1.45" class="mount"/>
+    <circle cx="125" cy="86" r="1.45" class="mount"/>
+    <circle cx="151" cy="86" r="1.45" class="mount"/>
+    <rect x="133" y="79.5" width="10" height="3.2" rx="1.4" fill="#ffffff" stroke="#d8d2c8" stroke-width="0.35"/>
+  </g>
+
+  <g transform="translate(10 127)">
+    <text x="0" y="0" class="label">Legend</text>
+    <circle cx="3" cy="7" r="1.8" class="case-insert"/>
+    <text x="7" y="7.8" class="small">H1-H4: M2.5 brass threaded heat-set inserts; use M2.5 x 5 mm screws</text>
+    <circle cx="82" cy="7" r="1.8" class="mount"/>
+    <text x="86" y="7.8" class="small">Blue: hardware mounting bosses</text>
+    <text x="0" y="13" class="small">1: Raspberry Pi Zero 2 W/WH. 2: MAX98357A I2S amp. 3: 4 ohm speaker. Schematic guide only; not a drill template.</text>
+  </g>
+</svg>
