@@ -10,14 +10,22 @@ The appliance target is a small enclosure with a 2.08 inch SH1122 SPI OLED, two 
 
 For a complete fresh Raspberry Pi Zero 2 W/WH build, see the [step-by-step install guide](docs/raspberry-pi-zero-2w-install.md).
 
+After flashing Raspberry Pi OS Lite and connecting with SSH, the installer can perform the software setup:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash
+sudo reboot
+```
+
 ## Install on Raspberry Pi OS Lite
 
 ```bash
 sudo apt update
-sudo apt install -y python3-pil python3-spidev python3-gpiozero python3-lgpio alsa-utils \
-  python3-gi gir1.2-gstreamer-1.0 \
+sudo apt install -y git curl avahi-daemon network-manager rfkill gpiod fonts-dejavu-core \
+  python3-pil python3-spidev python3-gpiozero python3-lgpio \
+  alsa-utils gstreamer1.0-alsa python3-gi python3-gst-1.0 gir1.2-gstreamer-1.0 \
   gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  gstreamer1.0-libav
+  gstreamer1.0-libav dnsmasq-base bluez
 ```
 
 Enable SPI with `sudo raspi-config` before using the SH1122 OLED.

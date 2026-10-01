@@ -56,15 +56,52 @@ Reconnect after the reboot:
 ssh chapter@chapter-player.local
 ```
 
+## Recommended Automated Install
+
+Run the installer from the Pi:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash
+sudo reboot
+```
+
+The installer does the software work from the sections below:
+
+- installs system packages
+- makes sure the `chapter` service user exists
+- clones or updates the project in `/home/chapter/audiobookshelf-player`
+- enables SPI
+- configures the MAX98357A I2S audio overlay and ALSA mixer
+- installs the setup page, OLED, boot splash, port 80 proxy, Bluetooth unblock, and captive portal DNS services
+
+To inspect the installer before running it:
+
+```bash
+curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh
+less install-raspberry-pi.sh
+bash install-raspberry-pi.sh
+sudo reboot
+```
+
+To install and reboot automatically:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash -s -- --yes
+```
+
+## Manual Install
+
+The automated installer is recommended. The rest of this guide shows the same steps manually, which is useful for troubleshooting or custom builds.
+
 ## Install System Packages
 
 ```bash
 sudo apt update
-sudo apt install -y git curl avahi-daemon rfkill gpiod fonts-dejavu-core \
+sudo apt install -y git curl avahi-daemon network-manager rfkill gpiod fonts-dejavu-core \
   python3-pil python3-spidev python3-gpiozero python3-lgpio \
   alsa-utils gstreamer1.0-alsa python3-gi python3-gst-1.0 gir1.2-gstreamer-1.0 \
   gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  gstreamer1.0-libav dnsmasq-base
+  gstreamer1.0-libav dnsmasq-base bluez
 ```
 
 Make sure the `chapter` user can use audio, GPIO, and SPI devices:
