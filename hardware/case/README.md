@@ -8,10 +8,15 @@ Printable STL files for the Chapter Player enclosure.
 - [stl/chapter-case-back-v5.stl](stl/chapter-case-back-v5.stl) - back case shell
 - [stl/chapter-case-knob-v5.stl](stl/chapter-case-knob-v5.stl) - rotary encoder knob
 
-## Assembly Diagram
+## Assembly Diagrams
 
+- [case-front-cover-backside-oled-layout.jpg](case-front-cover-backside-oled-layout.jpg) - annotated CAD view of the back side of the front cover showing OLED installation
 - [case-back-interior-layout.jpg](case-back-interior-layout.jpg) - annotated CAD view into the case back showing heat press insert bosses and hardware mounting areas
 - [case-rotary-encoder-mount-layout.jpg](case-rotary-encoder-mount-layout.jpg) - annotated CAD view from the x=0/front-side angle showing the two KY-040 rotary encoder mounts
+
+![Front cover back side OLED layout](case-front-cover-backside-oled-layout.jpg)
+
+In the front cover back-side diagram, blue `8` marks the OLED window. Slide the OLED into the window from the bottom. After you confirm the OLED is in the correct orientation, run a small bead of hot glue along the bottom edge, marked in orange as `9`, to keep it in place.
 
 ![Case back interior layout](case-back-interior-layout.jpg)
 
