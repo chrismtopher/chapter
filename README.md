@@ -73,6 +73,8 @@ The setup page lets you enter your Wi-Fi details and log the player into Audiobo
 
 For a simple handout, see the [first boot one-sheet](docs/first-boot-one-sheet.md).
 
+For a package-style animated quick start card, open [docs/first-boot-quick-start.html](docs/first-boot-quick-start.html).
+
 ## Controls
 
 - Turn the navigation knob to browse books.
