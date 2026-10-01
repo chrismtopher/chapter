@@ -6,7 +6,6 @@ Printable STL files for the Chapter Player enclosure.
 
 - [stl/chapter-case-front-v5.stl](stl/chapter-case-front-v5.stl) - front case shell
 - [stl/chapter-case-back-v5.stl](stl/chapter-case-back-v5.stl) - back case shell
-- [stl/chapter-case-front-logo-v5.stl](stl/chapter-case-front-logo-v5.stl) - front logo insert/detail
 - [stl/chapter-case-knob-v5.stl](stl/chapter-case-knob-v5.stl) - rotary encoder knob
 
 ## Notes
