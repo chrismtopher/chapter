@@ -79,7 +79,7 @@ Use the GitHub URL for this repository:
 
 ```bash
 cd /home/chapter
-git clone git@github.com:chrismtopher/chapter.git audiobookshelf-player
+git clone https://github.com/chrismtopher/chapter.git audiobookshelf-player
 cd /home/chapter/audiobookshelf-player
 ```
 
