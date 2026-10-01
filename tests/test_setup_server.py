@@ -512,6 +512,10 @@ class SetupServerTest(unittest.TestCase):
     def test_admin_page_groups_controls_into_accessible_tabs(self) -> None:
         self.assertIn("<title>Chapter Player for Audiobookshelf</title>", PAGE)
         self.assertIn("<h1>Chapter Player for Audiobookshelf</h1>", PAGE)
+        self.assertIn('class="app-brand"', PAGE)
+        self.assertIn('class="app-logo" src="/assets/chapter-logo.png"', PAGE)
+        self.assertIn('width="84" height="63" alt=""', PAGE)
+        self.assertIn('<link rel="icon" type="image/png" href="/assets/chapter-logo.png">', PAGE)
         self.assertNotIn("Administration", PAGE)
         self.assertIn('role="tablist"', PAGE)
         for tab_name in ("overview", "settings", "podcasts", "connections", "system"):
@@ -541,6 +545,23 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn("Are you sure you want to restore the device to default settings?", html)
         self.assertIn('action="/system/reset"', html)
         self.assertNotIn("window.confirm", PAGE)
+
+    def test_logo_asset_is_served_as_cached_png(self) -> None:
+        handler = object.__new__(SetupHandler)
+        handler.send_response = Mock()
+        handler.send_header = Mock()
+        handler.end_headers = Mock()
+        handler.wfile = io.BytesIO()
+
+        handler.send_logo_png()
+
+        body = handler.wfile.getvalue()
+        self.assertTrue(body.startswith(b"\x89PNG\r\n\x1a\n"))
+        handler.send_response.assert_called_once_with(200)
+        handler.send_header.assert_any_call("Content-Type", "image/png")
+        handler.send_header.assert_any_call("Cache-Control", "public, max-age=86400")
+        handler.send_header.assert_any_call("Content-Length", str(len(body)))
+        handler.end_headers.assert_called_once_with()
 
     def test_admin_page_uses_sse_with_polling_fallback(self) -> None:
         self.assertIn('new EventSource("/player/events")', PAGE)

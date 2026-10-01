@@ -8,6 +8,7 @@ import threading
 import time
 from dataclasses import replace
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from typing import Callable
 from urllib.parse import parse_qs, urlparse
 
@@ -53,6 +54,7 @@ SYSTEM_ACTION_DELAY_SECONDS = 3.0
 PLAYER_EVENT_POLL_SECONDS = 0.25
 PLAYER_EVENT_TIME_SECONDS = 1.0
 PLAYER_EVENT_HEARTBEAT_SECONDS = 10.0
+LOGO_PATH = Path(__file__).resolve().parent / "assets" / "chapter-logo.png"
 
 
 PAGE = """<!doctype html>
@@ -61,6 +63,7 @@ PAGE = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Chapter Player for Audiobookshelf</title>
+  <link rel="icon" type="image/png" href="/assets/chapter-logo.png">
   <style>
     body {{
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -77,8 +80,20 @@ PAGE = """<!doctype html>
       display: flex;
       justify-content: space-between;
       gap: 24px;
-      align-items: end;
+      align-items: center;
       padding: 0 2px;
+    }}
+    .app-brand {{
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }}
+    .app-logo {{
+      width: 84px;
+      height: 63px;
+      flex: 0 0 auto;
+      object-fit: contain;
     }}
     .app-intro {{
       max-width: 500px;
@@ -578,7 +593,8 @@ PAGE = """<!doctype html>
 <body>
   <main>
     <header class="app-header">
-      <div>
+      <div class="app-brand">
+        <img class="app-logo" src="/assets/chapter-logo.png" width="84" height="63" alt="">
         <h1>Chapter Player for Audiobookshelf</h1>
       </div>
     </header>
@@ -1084,6 +1100,9 @@ class SetupHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
         path = urlparse(self.path).path
+        if path == "/assets/chapter-logo.png":
+            self.send_logo_png()
+            return
         if path == "/player/events":
             self.send_player_events()
             return
@@ -1097,6 +1116,15 @@ class SetupHandler(BaseHTTPRequestHandler):
             self.send_error(404)
             return
         self.send_page()
+
+    def send_logo_png(self) -> None:
+        body = LOGO_PATH.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", "image/png")
+        self.send_header("Cache-Control", "public, max-age=86400")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
