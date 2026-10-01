@@ -96,7 +96,6 @@ For a simple handout, see the [first boot one-sheet](docs/first-boot-one-sheet.m
 - Multi-file audiobook playback
 - Continue/start-over prompt when a book has listening history
 - Wi-Fi setup fallback hotspot
-- Testable rotary/OLED menu state machine
 
 ## Development
 
