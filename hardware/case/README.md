@@ -21,6 +21,8 @@ In the diagram, orange `4` marks the speaker mounting bosses for a Visaton FRWS 
 
 In the rotary encoder diagram, `5` and `6` mark the two KY-040 rotary encoder module mounts on the inner front wall.
 
+Orange `7` marks the bottom foot indents. Install polyurethane adhesive feet in those indents; the build uses [Amazon ASIN B074PXV3D8](https://www.amazon.com/dp/B074PXV3D8?th=1).
+
 The annotated JPGs use the CAD screenshots in [images/](images/) as their source views.
 
 ## Notes
