@@ -1,0 +1,12 @@
+[Unit]
+Description=Proxy HTTP port 80 to Audiobookshelf Player setup page
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/sbin/audiobookshelf-player-port80-proxy --target-port 47831
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

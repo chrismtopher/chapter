@@ -1,0 +1,120 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import http.client
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+
+DEFAULT_LISTEN_HOST = "0.0.0.0"
+DEFAULT_LISTEN_PORT = 80
+DEFAULT_TARGET_HOST = "127.0.0.1"
+DEFAULT_TARGET_PORT = 47831
+STREAM_CHUNK_BYTES = 4096
+HOP_BY_HOP_HEADERS = {
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "upgrade",
+}
+
+
+class ProxyHandler(BaseHTTPRequestHandler):
+    server_version = "AbsKidsPort80Proxy/0.1"
+
+    def do_GET(self) -> None:
+        self.proxy()
+
+    def do_POST(self) -> None:
+        self.proxy()
+
+    def do_HEAD(self) -> None:
+        self.proxy()
+
+    def proxy(self) -> None:
+        body = self.read_body()
+        target_path = self.target_path()
+        headers = {
+            key: value
+            for key, value in self.headers.items()
+            if key.lower() not in HOP_BY_HOP_HEADERS
+        }
+        headers["Host"] = f"{self.server.target_host}:{self.server.target_port}"  # type: ignore[attr-defined]
+
+        connection = http.client.HTTPConnection(
+            self.server.target_host,  # type: ignore[attr-defined]
+            self.server.target_port,  # type: ignore[attr-defined]
+            timeout=10,
+        )
+        try:
+            connection.request(self.command, target_path, body=body, headers=headers)
+            response = connection.getresponse()
+        except OSError as error:
+            self.send_error(502, f"Setup server is not reachable: {error}")
+            return
+
+        self.send_response(response.status, response.reason)
+        for key, value in response.getheaders():
+            if key.lower() not in HOP_BY_HOP_HEADERS:
+                self.send_header(key, value)
+        self.end_headers()
+        if self.command != "HEAD":
+            try:
+                self.stream_response(response)
+            except (BrokenPipeError, ConnectionResetError, TimeoutError):
+                pass
+            finally:
+                connection.close()
+        else:
+            connection.close()
+
+    def target_path(self) -> str:
+        return self.path
+
+    def stream_response(self, response: http.client.HTTPResponse) -> None:
+        while True:
+            chunk = response.read1(STREAM_CHUNK_BYTES)
+            if not chunk:
+                return
+            self.wfile.write(chunk)
+            self.wfile.flush()
+
+    def read_body(self) -> bytes:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0:
+            return b""
+        return self.rfile.read(length)
+
+    def log_message(self, format: str, *args: object) -> None:
+        print(f"{self.address_string()} - {format % args}")
+
+
+class ProxyServer(ThreadingHTTPServer):
+    target_host: str
+    target_port: int
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Proxy port 80 to the Chapter Player for Audiobookshelf setup page.")
+    parser.add_argument("--listen-host", default=DEFAULT_LISTEN_HOST)
+    parser.add_argument("--listen-port", type=int, default=DEFAULT_LISTEN_PORT)
+    parser.add_argument("--target-host", default=DEFAULT_TARGET_HOST)
+    parser.add_argument("--target-port", type=int, default=DEFAULT_TARGET_PORT)
+    args = parser.parse_args()
+
+    server = ProxyServer((args.listen_host, args.listen_port), ProxyHandler)
+    server.target_host = args.target_host
+    server.target_port = args.target_port
+    print(
+        f"Forwarding http://{args.listen_host}:{args.listen_port} "
+        f"to http://{args.target_host}:{args.target_port}"
+    )
+    server.serve_forever()
+
+
+if __name__ == "__main__":
+    main()

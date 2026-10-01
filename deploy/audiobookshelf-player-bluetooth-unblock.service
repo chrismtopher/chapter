@@ -1,0 +1,12 @@
+[Unit]
+Description=Chapter Player for Audiobookshelf Bluetooth unblock
+After=bluetooth.service
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/rfkill unblock bluetooth
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,14 @@
+[Unit]
+Description=Audiobookshelf Player setup web page
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/audiobookshelf-player
+ExecStart=/usr/bin/python3 -m abs_kids_player.setup_server --ensure-wifi
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

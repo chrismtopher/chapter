@@ -1,0 +1,17 @@
+[Unit]
+Description=Chapter Player for Audiobookshelf early OLED boot splash
+DefaultDependencies=no
+After=systemd-modules-load.service
+Before=basic.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/chapter/audiobookshelf-player
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 -m abs_kids_player.boot_splash --hold-seconds 0.1
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=sysinit.target
