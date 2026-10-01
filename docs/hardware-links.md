@@ -23,8 +23,8 @@ Links may change over time; equivalent parts should also work if they match the 
 | Part | Qty | Link | Notes |
 | --- | ---: | --- | --- |
 | Polyurethane adhesive feet | 4 | [Amazon ASIN B074PXV3D8](https://www.amazon.com/dp/B074PXV3D8?th=1) | Install in the bottom foot indents shown in the case diagram. |
-| M2.5 heat press threaded inserts | As needed | Source from your preferred hardware supplier | Install in the highlighted component mounting holes. |
-| M2.5x5 mm screws | As needed | Source from your preferred hardware supplier | Used for mounting components into the heat press inserts. |
+| M2.5 heat press threaded inserts | 18 | Source from your preferred hardware supplier | Install in the highlighted component mounting holes. |
+| M2.5x5 mm screws | 18 | Source from your preferred hardware supplier | Used for mounting components into the heat press inserts. |
 | Printed case front, back, and knobs | 1 set | [Case STL files](../hardware/case/) | Print the v5 case files from the repository. |
 
 ## Common Build Supplies
