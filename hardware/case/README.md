@@ -11,10 +11,15 @@ Printable STL files for the Chapter Player enclosure.
 ## Assembly Diagram
 
 - [case-back-interior-layout.svg](case-back-interior-layout.svg) - straight-on view into the case back showing heat-set insert bosses and hardware mounting areas
+- [case-rotary-encoder-mount-layout.svg](case-rotary-encoder-mount-layout.svg) - oblique x=0/front-side view showing the two KY-040 rotary encoder mounts
 
 ![Case back interior layout](case-back-interior-layout.svg)
 
-In the diagram, orange marks the front/back case screw insert bosses, and blue marks hardware mounting bosses. Use M2.5 brass threaded heat-set inserts with M2.5 x 5 mm screws for the marked case screw bosses.
+In the diagram, orange `4` marks the speaker mounting bosses for a Visaton FRWS 5 - 4 Ohm speaker. Use M2.5 brass threaded heat-set inserts with M2.5 x 5 mm screws for those speaker mounts.
+
+![Rotary encoder mount layout](case-rotary-encoder-mount-layout.svg)
+
+In the rotary encoder diagram, `5` and `6` mark the two KY-040 rotary encoder module mounts on the inner front wall.
 
 ## Notes
 

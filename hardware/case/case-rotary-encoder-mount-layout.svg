@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 190 190" role="img" aria-labelledby="title desc">
+  <title id="title">Chapter Player rotary encoder mount layout</title>
+  <desc id="desc">Oblique open-case assembly diagram from the x=0/front-side viewing angle, showing the two KY-040 rotary encoder mounts.</desc>
+  <defs>
+    <style>
+      .case { fill: #f7f5ef; stroke: #2d2d2d; stroke-width: 0.75; }
+      .outer { fill: #efede6; stroke: #222222; stroke-width: 1.3; }
+      .inside { fill: #ffffff; stroke: #2d2d2d; stroke-width: 0.65; }
+      .shadow { fill: #777777; opacity: 0.52; }
+      .divider { fill: #f4f2eb; stroke: #222222; stroke-width: 0.65; }
+      .grille { fill: none; stroke: #333333; stroke-width: 0.55; }
+      .encoder { fill: #eaf3ee; stroke: #347b3a; stroke-width: 0.75; stroke-dasharray: 2 1.4; }
+      .shaft-hole { fill: #c8dddc; stroke: #111111; stroke-width: 0.45; }
+      .bracket { fill: #ece9e2; stroke: #111111; stroke-width: 0.55; }
+      .boss { fill: #f2f0ea; stroke: #111111; stroke-width: 0.5; }
+      .boss-hole { fill: #ffffff; stroke: #111111; stroke-width: 0.45; }
+      .badge { fill: #ffffff; stroke: #222222; stroke-width: 0.45; }
+      .title { font: 700 5px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222222; }
+      .subtitle { font: 2.65px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #555555; }
+      .label { font: 2.65px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222222; }
+      .small { font: 2.25px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #555555; }
+      .tiny { font: 1.9px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #333333; }
+      .badge-text { font: 700 2.4px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #222222; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+
+  <rect width="190" height="190" fill="#fbfaf7"/>
+  <text x="8" y="8" class="title">Rotary Encoder Mount Layout</text>
+  <text x="8" y="13" class="subtitle">View: oblique from the x=0/front-side position, looking up into the open case.</text>
+
+  <g transform="translate(12 25)">
+    <!-- Simplified open case based on the supplied viewing angle. -->
+    <path d="M 14 60 L 28 15 L 152 16 L 169 58 L 155 118 L 28 116 Z" class="outer"/>
+    <path d="M 28 15 L 152 16 L 165 55 L 21 54 Z" class="inside"/>
+    <path d="M 21 54 L 165 55 L 155 118 L 28 116 Z" class="case"/>
+    <path d="M 30 18 L 150 19 L 160 52 L 24 51 Z" fill="#ffffff" stroke="#2d2d2d" stroke-width="0.55"/>
+    <path d="M 19 57 L 165 58" stroke="#2d2d2d" stroke-width="0.8"/>
+
+    <!-- Interior left speaker chamber wall and divider hints. -->
+    <path d="M 22 52 L 88 53 L 88 82 L 20 80 Z" class="divider"/>
+    <path d="M 91 43 L 91 82 L 88 82 L 88 53 L 89 52 Z" class="divider"/>
+    <rect x="118" y="18" width="52" height="34" transform="skewX(-10)" class="shadow"/>
+
+    <!-- Right side speaker grille hint. -->
+    <g transform="translate(146 44) skewY(-11)">
+      <rect x="0" y="0" width="17" height="42" fill="#efede6" stroke="#2d2d2d" stroke-width="0.45"/>
+      <g class="grille">
+        <circle cx="4" cy="5" r="0.85"/><circle cx="8" cy="5" r="0.85"/><circle cx="12" cy="5" r="0.85"/>
+        <circle cx="4" cy="10" r="0.85"/><circle cx="8" cy="10" r="0.85"/><circle cx="12" cy="10" r="0.85"/>
+        <circle cx="4" cy="15" r="0.85"/><circle cx="8" cy="15" r="0.85"/><circle cx="12" cy="15" r="0.85"/>
+        <circle cx="4" cy="20" r="0.85"/><circle cx="8" cy="20" r="0.85"/><circle cx="12" cy="20" r="0.85"/>
+        <circle cx="4" cy="25" r="0.85"/><circle cx="8" cy="25" r="0.85"/><circle cx="12" cy="25" r="0.85"/>
+        <circle cx="4" cy="30" r="0.85"/><circle cx="8" cy="30" r="0.85"/><circle cx="12" cy="30" r="0.85"/>
+        <circle cx="4" cy="35" r="0.85"/><circle cx="8" cy="35" r="0.85"/><circle cx="12" cy="35" r="0.85"/>
+      </g>
+    </g>
+
+    <!-- Outside/front knob holes visible on front face. -->
+    <ellipse cx="36" cy="71" rx="6.7" ry="4.7" fill="#ffffff" stroke="#111111" stroke-width="0.55"/>
+    <ellipse cx="140" cy="72" rx="6.7" ry="4.7" fill="#ffffff" stroke="#111111" stroke-width="0.55"/>
+    <ellipse cx="44" cy="109" rx="6.7" ry="4.7" fill="#ffffff" stroke="#111111" stroke-width="0.55"/>
+    <ellipse cx="131" cy="110" rx="6.7" ry="4.7" fill="#ffffff" stroke="#111111" stroke-width="0.55"/>
+
+    <!-- The two side-by-side rotary encoder mount regions. -->
+    <rect x="94" y="28" width="24" height="35" rx="1.5" class="encoder"/>
+    <rect x="120" y="28" width="24" height="35" rx="1.5" class="encoder"/>
+
+    <!-- Left encoder bracket. -->
+    <circle cx="101" cy="33" r="4.3" class="shaft-hole"/>
+    <path d="M 108 27 L 113 26 L 116 40 L 111 41 Z" class="bracket"/>
+    <path d="M 107 40 L 112 38 L 111 58 L 106 60 Z" class="bracket"/>
+    <circle cx="111" cy="40" r="3" class="boss"/><circle cx="111" cy="40" r="1.25" class="boss-hole"/>
+    <circle cx="108" cy="58" r="3" class="boss"/><circle cx="108" cy="58" r="1.25" class="boss-hole"/>
+
+    <!-- Right encoder bracket. -->
+    <circle cx="127" cy="33" r="4.3" class="shaft-hole"/>
+    <path d="M 134 27 L 139 26 L 142 40 L 137 41 Z" class="bracket"/>
+    <path d="M 133 40 L 138 38 L 137 58 L 132 60 Z" class="bracket"/>
+    <circle cx="137" cy="40" r="3" class="boss"/><circle cx="137" cy="40" r="1.25" class="boss-hole"/>
+    <circle cx="134" cy="58" r="3" class="boss"/><circle cx="134" cy="58" r="1.25" class="boss-hole"/>
+
+    <!-- Number badges. -->
+    <circle cx="96" cy="26" r="2.55" class="badge"/><text x="96" y="26" class="badge-text">5</text>
+    <circle cx="122" cy="26" r="2.55" class="badge"/><text x="122" y="26" class="badge-text">6</text>
+
+    <text x="96" y="68" class="tiny">KY-040 rotary</text>
+    <text x="123" y="68" class="tiny">KY-040 rotary</text>
+  </g>
+
+  <g transform="translate(12 145)">
+    <text x="0" y="0" class="label">Legend</text>
+    <rect x="0" y="5" width="5" height="5" rx="0.8" class="encoder"/>
+    <text x="8" y="9" class="small">5 and 6: KY-040 rotary encoder module mounts on the inner front wall.</text>
+    <circle cx="3" cy="17" r="1.8" class="shaft-hole"/>
+    <text x="8" y="17.8" class="small">Round holes are the front-panel knob/encoder shaft openings.</text>
+    <circle cx="3" cy="25" r="1.8" class="boss"/>
+    <text x="8" y="25.8" class="small">Cylindrical bosses hold the encoder boards. Schematic guide only; not a drill template.</text>
+  </g>
+</svg>

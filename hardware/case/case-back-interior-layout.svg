@@ -8,6 +8,7 @@
       .rib { fill: #65635f; opacity: 0.8; }
       .part { fill: #e8f1fb; stroke: #2268a8; stroke-width: 0.7; stroke-dasharray: 2 1.4; }
       .speaker { fill: #f4ebdf; stroke: #a86522; stroke-width: 0.7; stroke-dasharray: 2 1.4; }
+      .usb { fill: #eef5ea; stroke: #3b7a2a; stroke-width: 0.7; stroke-dasharray: 2 1.4; }
       .boss { fill: #e9e7e1; stroke: #beb9ae; stroke-width: 0.8; }
       .case-insert { fill: #f8c15f; stroke: #6d4310; stroke-width: 0.8; }
       .mount { fill: #b9d6ef; stroke: #214f7a; stroke-width: 0.7; }
@@ -48,15 +49,18 @@
     <circle cx="13" cy="34" r="1.45" class="mount"/>
     <circle cx="71" cy="34" r="1.45" class="mount"/>
 
-    <!-- Front/back shell heat-set bosses. -->
+    <!-- Speaker mount footprint. -->
+    <rect x="12" y="45" width="60" height="53" class="speaker"/>
+    <text x="27" y="72" class="tiny">Visaton FRWS 5</text>
+    <text x="31" y="75" class="tiny">4 Ohm speaker</text>
     <circle cx="20" cy="49" r="3.4" class="case-insert"/>
     <circle cx="64" cy="49" r="3.4" class="case-insert"/>
     <circle cx="20" cy="93" r="3.4" class="case-insert"/>
     <circle cx="64" cy="93" r="3.4" class="case-insert"/>
-    <text x="18.2" y="50" class="tiny">H1</text>
-    <text x="62.2" y="50" class="tiny">H2</text>
-    <text x="18.2" y="94" class="tiny">H3</text>
-    <text x="62.2" y="94" class="tiny">H4</text>
+    <text x="19.4" y="50" class="tiny">4</text>
+    <text x="63.4" y="50" class="tiny">4</text>
+    <text x="19.4" y="94" class="tiny">4</text>
+    <text x="63.4" y="94" class="tiny">4</text>
 
     <!-- 2. MAX98357A amp board footprint. -->
     <rect x="124" y="37" width="29" height="14" class="part"/>
@@ -68,11 +72,12 @@
     <circle cx="131.5" cy="44" r="1.45" class="mount"/>
     <circle cx="145" cy="44" r="1.45" class="mount"/>
 
-    <!-- 3. Speaker mount footprint in the right speaker chamber. -->
-    <rect x="116" y="66" width="47" height="28" class="speaker"/>
+    <!-- 3. USB-C service/power port footprint. -->
+    <rect x="116" y="66" width="47" height="28" class="usb"/>
     <circle cx="120" cy="70" r="2.3" class="badge"/>
     <text x="120" y="70" class="badge-text">3</text>
-    <text x="128" y="64.5" class="tiny">4 ohm speaker</text>
+    <text x="126" y="63.5" class="tiny">Adafruit 5993</text>
+    <text x="126" y="66.2" class="tiny">vertical USB-C</text>
     <circle cx="125" cy="76" r="3.1" class="boss"/>
     <circle cx="151" cy="76" r="3.1" class="boss"/>
     <circle cx="125" cy="86" r="3.1" class="boss"/>
@@ -87,9 +92,11 @@
   <g transform="translate(10 127)">
     <text x="0" y="0" class="label">Legend</text>
     <circle cx="3" cy="7" r="1.8" class="case-insert"/>
-    <text x="7" y="7.8" class="small">H1-H4: M2.5 brass threaded heat-set inserts; use M2.5 x 5 mm screws</text>
-    <circle cx="82" cy="7" r="1.8" class="mount"/>
-    <text x="86" y="7.8" class="small">Blue: hardware mounting bosses</text>
-    <text x="0" y="13" class="small">1: Raspberry Pi Zero 2 W/WH. 2: MAX98357A I2S amp. 3: 4 ohm speaker. Schematic guide only; not a drill template.</text>
+    <text x="7" y="7.8" class="small">4: Visaton FRWS 5 - 4 Ohm speaker mounts</text>
+    <text x="7" y="12" class="small">Use M2.5 brass threaded heat-set inserts with M2.5 x 5 mm screws.</text>
+    <circle cx="3" cy="19" r="1.8" class="mount"/>
+    <text x="7" y="19.8" class="small">Blue: hardware mounting bosses for the Pi, amp, and USB-C board.</text>
+    <text x="0" y="27" class="small">1: Raspberry Pi Zero 2 W/WH. 2: MAX98357A I2S amp.</text>
+    <text x="0" y="31.2" class="small">3: Adafruit 5993 vertical USB-C port. Schematic guide only; not a drill template.</text>
   </g>
 </svg>
