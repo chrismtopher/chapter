@@ -90,6 +90,7 @@ For a simple handout, see the [first boot one-sheet](docs/first-boot-one-sheet.m
 - Rotary encoder navigation and volume control
 - Internal speaker playback through GStreamer
 - Audiobookshelf login through the local setup page
+- Admin web page player controls, including play/pause and volume
 - Resume from Audiobookshelf progress
 - Periodic progress sync back to Audiobookshelf
 - Multi-file audiobook playback
