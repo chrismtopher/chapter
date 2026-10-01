@@ -194,19 +194,20 @@ Use the Adafruit USB-C breakout as the appliance's rear USB-C service/power port
 
 Keep the D+/D- pair short, similar length, and away from the speaker amp wiring. For a printed enclosure, twisted 30 AWG wire-wrap wire or a short USB 2.0 pigtail works better than long loose hookup wires.
 
-Recommended resettable fuse:
+Recommended fuse options:
 
 - Bourns `MF-MSMF150-2`, 1.5A hold / 3A trip, 6V, 1812 SMD
 - Littelfuse `1812L150ZR`, 1.5A hold / 3A trip, 8V, 1812 SMD
+- Prototype inline fuse: [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P)
 
-Wire the PTC in series with USB-C `VBUS`, before the Pi and amplifier:
+Wire the fuse in series with USB-C `VBUS`, before the Pi and amplifier:
 
 ```text
-USB-C VBUS -> PTC polyfuse -> optional power switch -> Pi 5V / amp 5V
+USB-C VBUS -> fuse -> optional power switch -> Pi 5V / amp 5V
 USB-C GND  -> Pi GND / amp GND
 ```
 
-Do not put the PTC in series with `D+` or `D-`.
+Do not put the fuse in series with `GND`, `D+`, or `D-`.
 
 This gives the appliance one USB-C port for power and USB 2.0 data/device access. The Pi Zero 2 WH has only one USB OTG data port, so avoid using the original micro-USB data port at the same time. If plugging into a computer for service access, configure the Pi for USB gadget mode, such as USB Ethernet/SSH. If plugging into only a charger, it will simply power the appliance.
 

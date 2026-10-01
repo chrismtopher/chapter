@@ -15,7 +15,8 @@ The software setup is handled by the installer. This guide covers the parts a ne
 - Two KY-040 rotary encoder modules.
 - MAX98357A I2S mono amplifier breakout.
 - 4 ohm speaker.
-- Jumper wires or soldered wiring, plus an enclosure.
+- Inline fuse for the USB-C 5 V positive lead.
+- Cross-connect wires or soldered wiring, plus an enclosure. The build uses [Amazon ASIN B01EV70C78](https://www.amazon.com/dp/B01EV70C78?th=1) for component wiring.
 
 For links to the recommended parts, see the [hardware links](hardware-links.md).
 
@@ -139,6 +140,19 @@ Power the KY-040 from 3.3 V, not 5 V.
 | Speaker `+` / `-` | Speaker terminals | - |
 
 The default software leaves `SD` / `SD_MODE` alone. That lets the breakout's own mode resistor choose the default mono mix.
+
+### USB-C Power Port And Fuse
+
+If you are using the Adafruit 5993 vertical USB-C breakout as the rear power/service port, put an inline fuse on the positive 5 V leg coming from the USB-C board before it reaches the Raspberry Pi.
+
+The build uses [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P) for the fuse.
+
+```text
+USB-C breakout VBUS -> inline fuse -> Raspberry Pi 5 V pin 2 or 4
+USB-C breakout GND  -> Raspberry Pi GND
+```
+
+Any 5 V branch for the amp should be taken from the fused 5 V side. Do not put the fuse in series with `GND`, `D+`, or `D-`.
 
 ## First Boot
 
