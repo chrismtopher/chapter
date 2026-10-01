@@ -17,6 +17,8 @@ The software setup is handled by the installer. This guide covers the parts a ne
 - 4 ohm speaker.
 - Jumper wires or soldered wiring, plus an enclosure.
 
+For links to the recommended parts, see the [hardware links](hardware-links.md).
+
 The Pi Zero 2 W Wi-Fi radio is 2.4 GHz only. Use a 2.4 GHz network during setup.
 
 ## Flash Raspberry Pi OS

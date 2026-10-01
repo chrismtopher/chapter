@@ -47,6 +47,8 @@ Recommended build:
 
 The wiring tables are in the [install guide](docs/raspberry-pi-zero-2w-install.md#wire-the-hardware).
 
+Purchase links for the recommended parts are in [docs/hardware-links.md](docs/hardware-links.md).
+
 Printable case files are in [hardware/case](hardware/case).
 
 ## Setup
