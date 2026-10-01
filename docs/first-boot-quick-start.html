@@ -107,94 +107,67 @@
       place-items: center;
     }
 
-    .device {
+    .device-wrap {
       position: relative;
-      width: 83%;
-      height: 72%;
-      border-radius: 28px;
-      background:
-        radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.72), transparent 30%),
-        linear-gradient(180deg, #f2e5d3, #d5b898);
-      border: 5px solid rgba(103, 74, 48, 0.42);
-      box-shadow: 0 24px 34px rgba(72, 50, 31, 0.22);
+      width: 91%;
+      max-width: 7.1in;
+      display: grid;
+      place-items: center;
       animation: device-float 6.5s ease-in-out infinite;
     }
 
-    .device::before,
-    .device::after {
-      content: "";
+    .device-art {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 22px 26px rgba(72, 50, 31, 0.18));
+    }
+
+    .device-screen-overlay {
       position: absolute;
-      top: -0.28in;
-      width: 0.74in;
-      height: 0.52in;
-      border-radius: 18px 18px 12px 12px;
-      background:
-        repeating-linear-gradient(90deg, #9d6942 0 4px, #c7966e 4px 8px);
-      border: 3px solid #81583a;
-      box-shadow: 0 8px 0 rgba(78, 55, 38, 0.18);
-      animation: knob-turn 2.8s ease-in-out infinite;
-    }
-
-    .device::before {
-      left: 58%;
-    }
-
-    .device::after {
-      left: 73%;
-      animation-delay: 0.42s;
-    }
-
-    .device-screen {
-      position: absolute;
-      left: 12%;
-      top: 31%;
-      width: 34%;
-      height: 19%;
-      border-radius: 10px;
-      background: #111;
-      border: 6px solid rgba(255, 255, 255, 0.82);
-      box-shadow: 0 0 0 4px rgba(100, 80, 58, 0.2);
-      color: #fff;
+      left: 20.7%;
+      top: 41.3%;
+      width: 29.4%;
+      height: 11.1%;
+      border-radius: 14px;
+      background: #050607;
+      color: #e7fbff;
       display: grid;
       align-content: center;
-      gap: 2px;
-      padding-left: 0.22in;
-      font-weight: 850;
-      animation: pulse-screen 1.9s ease-in-out infinite;
+      gap: 3px;
+      padding: 0.07in 0.13in;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      box-shadow: inset 0 0 16px rgba(111, 231, 255, 0.2), 0 0 18px rgba(49, 106, 141, 0.35);
+      transform: perspective(7in) rotateX(1deg) rotateY(-7deg) rotateZ(-1.2deg);
+      transform-origin: center;
+      animation: screen-flicker 2.2s ease-in-out infinite;
     }
 
-    .device-screen span {
+    .device-screen-overlay strong,
+    .device-screen-overlay span,
+    .device-screen-overlay code {
       display: block;
-      font-size: 18px;
       line-height: 1;
+      letter-spacing: 0;
+      white-space: nowrap;
+      text-shadow: 0 0 8px rgba(164, 241, 255, 0.85);
     }
 
-    .device-screen small {
-      color: #d4edf7;
-      font-size: 11px;
+    .device-screen-overlay strong {
+      font-size: 13px;
+      font-weight: 850;
+    }
+
+    .device-screen-overlay span {
+      font-size: 10px;
       font-weight: 750;
     }
 
-    .device-title {
-      position: absolute;
-      left: 54%;
-      top: 31%;
-      color: var(--accent-dark);
-      font-size: 56px;
-      line-height: 1;
-      font-weight: 500;
-      letter-spacing: 0;
-    }
-
-    .speaker-grille {
-      position: absolute;
-      left: 12%;
-      bottom: 18%;
-      width: 34%;
-      height: 28%;
-      background-image: radial-gradient(circle, #1f1b17 0 3px, transparent 3.5px);
-      background-size: 22px 22px;
-      opacity: 0.9;
+    .device-screen-overlay code {
+      color: #e7fbff;
+      font-size: 12px;
+      font-weight: 850;
+      font-family: inherit;
     }
 
     .setup-card {
@@ -227,18 +200,6 @@
       margin-top: 4px;
       color: var(--muted);
       font-size: 12px;
-    }
-
-    .screen-glow {
-      position: absolute;
-      left: 15.3%;
-      top: 38%;
-      width: 23.5%;
-      height: 13.5%;
-      border-radius: 14px;
-      border: 3px solid rgba(255, 255, 255, 0.7);
-      box-shadow: 0 0 0 4px rgba(49, 106, 141, 0.3), 0 0 26px rgba(49, 106, 141, 0.85);
-      pointer-events: none;
     }
 
     .wifi-burst {
@@ -399,6 +360,11 @@
       50% { opacity: 1; }
     }
 
+    @keyframes screen-flicker {
+      0%, 100% { filter: brightness(0.96); }
+      50% { filter: brightness(1.12); }
+    }
+
     @keyframes wifi {
       0% { opacity: 0; transform: rotate(-45deg) scale(0.35); }
       25% { opacity: 0.9; }
@@ -436,9 +402,9 @@
         box-shadow: none;
       }
 
-      .device,
+      .device-wrap,
       .setup-card,
-      .screen-glow,
+      .device-screen-overlay,
       .wifi-burst span,
       .knob {
         animation: none;
@@ -457,12 +423,14 @@
     </header>
 
     <section class="hero-stage" aria-label="Chapter Player setup overview">
-      <div class="device" aria-hidden="true">
-        <div class="device-screen"><span>Chapter</span><small>Setup Ready</small></div>
-        <div class="device-title">chapter</div>
-        <div class="speaker-grille"></div>
+      <div class="device-wrap" aria-hidden="true">
+        <img class="device-art" src="assets/chapter-device-illustrated.png" alt="">
+        <div class="device-screen-overlay">
+          <strong>SETUP READY</strong>
+          <span>Wi-Fi Chapter-Setup</span>
+          <code>192.168.4.1</code>
+        </div>
       </div>
-      <div class="screen-glow" aria-hidden="true"></div>
       <div class="wifi-burst" aria-hidden="true"><span></span><span></span><span></span></div>
       <div class="setup-card" aria-hidden="true">
         <strong>Join Setup Wi-Fi</strong>
