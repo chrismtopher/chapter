@@ -78,19 +78,19 @@ For a package-style quick start card, open the [PDF](docs/first-boot-quick-start
 
 ## Controls
 
-- Turn the navigation knob to browse books.
-- Click the navigation knob to select.
-- Turn the volume knob to change volume.
-- Click the volume knob to mute or unmute.
-- Hold the volume knob for 10 seconds to show the setup address.
-- Hold the navigation knob for 3 seconds to open the Bluetooth menu.
-- In the Bluetooth menu, turn the navigation knob to choose `Enable`, `Disable`, `Pair`, `Unpair`, or `Back`, then click to select.
+- Turn the Select knob to browse books.
+- Click the Select knob to choose.
+- Turn the Volume knob to change volume.
+- Click the Volume knob to mute or unmute.
+- Hold the Volume knob for 10 seconds to show the setup address.
+- Hold the Select knob for 3 seconds to open the Bluetooth menu.
+- In the Bluetooth menu, turn the Select knob to choose `Enable`, `Disable`, `Pair`, `Unpair`, or `Back`, then click to select.
 - To pair a speaker or headphones, put the device in pairing mode, choose `Pair`, wait for the device list, turn to the device name, and click to connect.
 
 ## Features
 
 - Two-line SH1122 OLED library and playback UI
-- Rotary encoder navigation and volume control
+- Select and Volume rotary controls
 - Internal speaker playback through GStreamer
 - Audiobookshelf login through the local setup page
 - Admin web page player controls, including play/pause and volume

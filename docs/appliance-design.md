@@ -26,10 +26,10 @@ This display changes the product shape: cover art should not be shown on-device.
 
 ### Controls
 
-Use two KY-040 rotary encoder modules:
+Use two KY-040 rotary encoder modules, labeled `Select` and `Volume` on the case:
 
-- Navigation encoder: browse books, choose continue/start-over, play/pause, chapter navigation confirmation.
-- Volume encoder: turn for volume, short-click for mute/unmute, 10-second hold to show setup IP.
+- Select knob: browse books, choose continue/start-over, play/pause, and confirm chapter navigation.
+- Volume knob: turn for volume, short-click for mute/unmute, and hold for 10 seconds to show the setup IP.
 
 The KY-040 has `CLK`, `DT`, `SW`, `+`, and `GND` pins. Power each module from the Pi's 3.3V rail, not 5V, so its pull-ups never expose a Raspberry Pi GPIO input to 5V. If clockwise/counter-clockwise feels reversed after mounting, either swap `CLK` and `DT` or set the encoder's `reversed` flag in software.
 
@@ -82,7 +82,7 @@ Kids Player UI
     |
     +-- OLED: SH1122 SPI two-line display
     |
-    +-- Inputs: navigation encoder + volume encoder
+    +-- Inputs: Select knob + Volume knob
     |
     +-- Local output: GStreamer -> I2S internal speaker
     |
@@ -98,7 +98,7 @@ Top:    audiobook title
 Bottom: By author
 ```
 
-Turn the navigation encoder to move through titles. Click to open the selected title.
+Turn the Select knob to move through titles. Click it to open the selected title.
 
 ### Continue or Start Over
 
@@ -107,7 +107,7 @@ Top:    audiobook title
 Bottom: > Continue
 ```
 
-Show this screen only when the selected book has listening history. `Continue` is the default selection. Turn the navigation encoder to switch between `Continue` and `Start over`. Click to select. If the book has no listening history, selecting it starts from the beginning immediately.
+Show this screen only when the selected book has listening history. `Continue` is the default selection. Turn the Select knob to switch between `Continue` and `Start over`. Click it to choose. If the book has no listening history, selecting it starts from the beginning immediately.
 
 ### Playing
 
@@ -116,7 +116,7 @@ Top:    audiobook title and time
 Bottom: chapter, state, and action row
 ```
 
-The bottom action row is ordered `Home | Prev | Play/Pause | Next`. The navigation encoder moves left and right through the row, stopping at the edges. Click to select the focused action. `Play/Pause` is focused by default when playback starts. `Prev` and `Next` ask for confirmation before seeking.
+The bottom action row is ordered `Home | Prev | Play/Pause | Next`. The Select knob moves left and right through the row, stopping at the edges. Click it to choose the focused action. `Play/Pause` is focused by default when playback starts. `Prev` and `Next` ask for confirmation before seeking.
 
 If the top title/time line is too long for the OLED, scroll it horizontally while the book is playing. Keep the bottom action row stable so the selected action does not move under the user's focus.
 
@@ -127,11 +127,11 @@ Top:    audiobook title
 Bottom: Go Ch 4? Yes
 ```
 
-Turn the navigation encoder to switch between `Yes` and `No`. Click to confirm.
+Turn the Select knob to switch between `Yes` and `No`. Click it to confirm.
 
 ### Volume
 
-The volume encoder is global:
+The Volume knob is global:
 
 - Turn clockwise: volume up
 - Turn counter-clockwise: volume down
@@ -163,16 +163,16 @@ This pinout avoids the I2S pins commonly used by a MAX98357A-style amplifier.
 | OLED | CS | GPIO8/CE0 | 24 |
 | OLED | DC | GPIO24 | 18 |
 | OLED | RES | GPIO25 | 22 |
-| Nav KY-040 | + | 3.3V | 1 |
-| Nav KY-040 | GND | GND | 9 |
-| Nav KY-040 | CLK | GPIO5 | 29 |
-| Nav KY-040 | DT | GPIO6 | 31 |
-| Nav KY-040 | SW | GPIO13 | 33 |
-| Volume KY-040 | + | 3.3V | 17 |
-| Volume KY-040 | GND | GND | 14 |
-| Volume KY-040 | CLK | GPIO12 | 32 |
-| Volume KY-040 | DT | GPIO16 | 36 |
-| Volume KY-040 | SW | GPIO26 | 37 |
+| Select knob KY-040 | + | 3.3V | 1 |
+| Select knob KY-040 | GND | GND | 9 |
+| Select knob KY-040 | CLK | GPIO5 | 29 |
+| Select knob KY-040 | DT | GPIO6 | 31 |
+| Select knob KY-040 | SW | GPIO13 | 33 |
+| Volume knob KY-040 | + | 3.3V | 17 |
+| Volume knob KY-040 | GND | GND | 14 |
+| Volume knob KY-040 | CLK | GPIO12 | 32 |
+| Volume knob KY-040 | DT | GPIO16 | 36 |
+| Volume knob KY-040 | SW | GPIO26 | 37 |
 | I2S amp | BCLK | GPIO18 | 12 |
 | I2S amp | LRCLK | GPIO19 | 35 |
 | I2S amp | DIN | GPIO21 | 40 |
@@ -277,7 +277,7 @@ The page logs the player into Audiobookshelf with the selected user's username a
 
 This lets a parent change which Audiobookshelf user the appliance uses without attaching a keyboard and display to the Pi.
 
-To reveal the address without a monitor, hold the volume knob for 10 seconds while the unit is powered on. The OLED should show the setup URL, such as `http://192.168.1.42`, for 5 seconds and then return to the previous screen.
+To reveal the address without a monitor, hold the Volume knob for 10 seconds while the unit is powered on. The OLED should show the setup URL, such as `http://192.168.1.42`, for 5 seconds and then return to the previous screen.
 
 The main setup page should show whether the setup server is running, whether Wi-Fi is connected and which SSID is active, and whether the saved Audiobookshelf login can successfully reach the server. The `/health` route can show the same status as a convenience.
 
@@ -306,7 +306,7 @@ Use the current 3D printed prototype as the visual reference for future renders:
 
 - Matte white PLA body with visible fine print texture.
 - Warm tan/brown printed knobs with ridged/scalloped edges and textured top faces.
-- Large navigation knob on the lower-right/front, smaller volume knob above it.
+- Large Select knob on the lower-right/front, smaller Volume knob above it.
 - OLED window on the upper-left/front with a black recessed display area and rounded rectangular cutout.
 - Small 3 mm power-indicator opening at the lower-right of the front cover.
 - Speaker grille on the lower-left/front, made from a dense grid of round holes.

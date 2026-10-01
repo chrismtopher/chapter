@@ -33,7 +33,7 @@ After setup is complete, the Chapter Player should show the library or playback 
 
 ## The Two Knobs
 
-### Navigation Knob
+### Select Knob
 
 - Turn: move through books, menu items, or playback actions.
 - Click: select the highlighted item.
@@ -47,13 +47,13 @@ After setup is complete, the Chapter Player should show the library or playback 
 
 ## Menus And Playback
 
-- In any menu, turn the navigation knob to move and click it to choose.
+- In any menu, turn the Select knob to move and click it to choose.
 - When choosing a book with listening history, select `Continue` or `Start over`.
-- During playback, use the navigation knob to choose `Home`, `Prev`, `Play/Pause`, or `Next`.
+- During playback, use the Select knob to choose `Home`, `Prev`, `Play/Pause`, or `Next`.
 - `Prev` and `Next` may ask you to confirm before changing chapters.
 - In the Bluetooth menu, choose `Enable`, `Disable`, `Pair`, `Unpair`, or `Back`.
 - To pair Bluetooth audio, put the speaker or headphones in pairing mode, choose `Pair`, select the device name, and click to connect.
 
 ## If Setup Is Needed Later
 
-Hold the volume knob for 10 seconds. The Chapter Player will show its setup address on the screen.
+Hold the Volume knob for 10 seconds. The Chapter Player will show its setup address on the screen.

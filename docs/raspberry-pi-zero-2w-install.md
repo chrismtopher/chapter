@@ -106,7 +106,7 @@ Power the Pi off before wiring. Disconnect power, then wire the parts.
 | `DC` | GPIO24 | 18 |
 | `RES` / `RST` | GPIO25 | 22 |
 
-### Navigation Encoder
+### Select Knob (KY-040)
 
 Power the KY-040 from 3.3 V, not 5 V.
 
@@ -118,7 +118,7 @@ Power the KY-040 from 3.3 V, not 5 V.
 | `DT` | GPIO6 | 31 |
 | `SW` | GPIO13 | 33 |
 
-### Volume Encoder
+### Volume Knob (KY-040)
 
 | KY-040 Pin | Raspberry Pi Signal | Physical Pin |
 | --- | --- | ---: |
@@ -226,11 +226,11 @@ If no library is selected, the player uses the user's default audiobook library 
 
 ## Using The Player
 
-- Turn the navigation knob to browse books.
-- Click the navigation knob to select.
-- Turn the volume knob to change volume.
-- Click the volume knob to mute or unmute.
-- Hold the volume knob for 10 seconds to show the setup address.
+- Turn the Select knob to browse books.
+- Click the Select knob to choose.
+- Turn the Volume knob to change volume.
+- Click the Volume knob to mute or unmute.
+- Hold the Volume knob for 10 seconds to show the setup address.
 
 ## Updating Later
 

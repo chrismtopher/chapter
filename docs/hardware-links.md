@@ -10,7 +10,7 @@ Links may change over time; equivalent parts should also work if they match the 
 | --- | ---: | --- | --- |
 | Raspberry Pi Zero 2 W/WH | 1 | [Adafruit product 6008](https://www.adafruit.com/product/6008) | Use a WH board or add a soldered 40-pin header. |
 | 2.08 inch SH1122 SPI OLED | 1 | [Amazon ASIN B0D1V5YBXC](https://www.amazon.com/dp/B0D1V5YBXC) | 256x64 SPI OLED. |
-| KY-040 rotary encoder module | 2 | [Amazon ASIN B07T3672VK](https://www.amazon.com/dp/B07T3672VK) | One for navigation and one for volume. |
+| KY-040 rotary encoder module | 2 | [Amazon ASIN B07T3672VK](https://www.amazon.com/dp/B07T3672VK) | One for the Select knob and one for the Volume knob. |
 | MAX98357A I2S mono amplifier breakout | 1 | [Amazon ASIN B0GF67KXC3](https://www.amazon.com/dp/B0GF67KXC3?th=1) | Drives the internal speaker. |
 | Adafruit 5993 vertical USB-C breakout | 1 | [Adafruit product 5993](https://www.adafruit.com/product/5993) | Rear USB-C service/power port. |
 | Inline fuse for USB-C 5 V positive lead | 1 | [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P) | Install in series on the positive leg from the USB-C board before the Raspberry Pi 5 V input. |
