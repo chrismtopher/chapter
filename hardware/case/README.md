@@ -37,6 +37,18 @@ Orange `7` marks the bottom foot indents. Install polyurethane adhesive feet in 
 
 The annotated JPGs use the CAD screenshots in [images/](images/) as their source views.
 
+## Installing The Front Cover
+
+Treat the front cover as the final assembly step. Before installing it, complete the wiring and software tests and confirm that the display, Select knob, Volume knob, speaker, power indicator, Wi-Fi, and playback all work correctly.
+
+1. Arrange the internal wiring so no wire can be pinched between the front cover and the back of the case.
+2. Place the front cover over the back of the case and align their edges.
+3. Start at either the left or right side; engaging one side first is easier than trying to snap the entire cover into place at once.
+4. Work around the perimeter with even hand pressure until the remaining tabs snap into place.
+5. Check that the seam is even and fully seated on every side.
+
+If a section is difficult to insert, a thin plastic spudger or similar non-marring tool can provide gentle leverage between the cover and the back of the case. Do not force the cover, use a metal screwdriver, or pry near wiring and printed snap tabs; stop and check alignment or trapped wires instead.
+
 ## Notes
 
 These files are provided as the v5 case export. They are intended for the Raspberry Pi Zero 2 W/WH build described in the main install guide.
