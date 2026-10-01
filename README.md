@@ -71,6 +71,8 @@ Page:     http://10.42.0.1
 
 The setup page lets you enter your Wi-Fi details and log the player into Audiobookshelf. Create a dedicated Audiobookshelf user for the player and restrict that user to the appropriate library or tags.
 
+For a simple handout, see the [first boot one-sheet](docs/first-boot-one-sheet.md).
+
 ## Controls
 
 - Turn the navigation knob to browse books.
