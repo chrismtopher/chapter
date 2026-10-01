@@ -21,9 +21,15 @@ Chapter-Setup
 4. Open a browser and go to the address shown on the Chapter Player screen.
 5. Enter your home Wi-Fi network name and password.
 6. Submit the form and wait while the Chapter Player joins your Wi-Fi.
-7. If prompted, enter the Audiobookshelf server address, username, and password for the player account.
 
-After setup is complete, the player should show the library or playback screen.
+## Add Audiobookshelf Server Info
+
+1. Open the setup page again if it does not reconnect automatically.
+2. Enter the Audiobookshelf server address.
+3. Enter the username and password for the player account.
+4. Submit the form and wait for the player to connect.
+
+After setup is complete, the Chapter Player should show the library or playback screen.
 
 ## The Two Knobs
 
