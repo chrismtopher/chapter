@@ -10,18 +10,18 @@ Printable STL files for the Chapter Player enclosure.
 
 ## Assembly Diagram
 
-- [case-back-interior-layout.svg](case-back-interior-layout.svg) - annotated CAD view into the case back showing heat-set insert bosses and hardware mounting areas
-- [case-rotary-encoder-mount-layout.svg](case-rotary-encoder-mount-layout.svg) - annotated CAD view from the x=0/front-side angle showing the two KY-040 rotary encoder mounts
+- [case-back-interior-layout.jpg](case-back-interior-layout.jpg) - annotated CAD view into the case back showing heat press insert bosses and hardware mounting areas
+- [case-rotary-encoder-mount-layout.jpg](case-rotary-encoder-mount-layout.jpg) - annotated CAD view from the x=0/front-side angle showing the two KY-040 rotary encoder mounts
 
-![Case back interior layout](case-back-interior-layout.svg)
+![Case back interior layout](case-back-interior-layout.jpg)
 
 In the diagram, orange `4` marks the speaker mounting bosses for a Visaton FRWS 5 - 4 Ohm speaker. Install M2.5 heat press threaded inserts in the highlighted mounting holes and use M2.5x5 mm screws for mounting components.
 
-![Rotary encoder mount layout](case-rotary-encoder-mount-layout.svg)
+![Rotary encoder mount layout](case-rotary-encoder-mount-layout.jpg)
 
 In the rotary encoder diagram, `5` and `6` mark the two KY-040 rotary encoder module mounts on the inner front wall.
 
-The annotated SVGs use the CAD screenshots in [images/](images/) as their source views.
+The annotated JPGs use the CAD screenshots in [images/](images/) as their source views.
 
 ## Notes
 
