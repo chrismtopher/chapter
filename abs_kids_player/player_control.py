@@ -8,6 +8,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from .storage import ensure_storage_directory, finalize_storage_file
+
 
 STATE_DIR = Path.home() / ".local" / "state" / "abs-kids-player"
 STATUS_PATH = STATE_DIR / "web-player-status.json"
@@ -40,10 +42,11 @@ class WebPlayerCommand:
 
 def save_web_player_status(status: WebPlayerStatus) -> None:
     path = status_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_storage_directory(path.parent)
     data = asdict(status)
     data["updated_at"] = time.time()
     path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    finalize_storage_file(path)
 
 
 def load_web_player_status() -> WebPlayerStatus:
@@ -102,8 +105,9 @@ def read_command_data() -> list[dict[str, Any]]:
 
 def write_command_data(commands: list[dict[str, Any]]) -> None:
     path = commands_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_storage_directory(path.parent)
     path.write_text(json.dumps(commands, indent=2), encoding="utf-8")
+    finalize_storage_file(path)
 
 
 def status_path() -> Path:

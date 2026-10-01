@@ -6,6 +6,8 @@ import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
+from .storage import ensure_storage_directory, finalize_storage_file
+
 
 STATE_DIR = Path.home() / ".local" / "state" / "abs-kids-player"
 STATE_PATH = STATE_DIR / "player-state.json"
@@ -53,8 +55,9 @@ def save_last_playback(book_id: str, title: str, current_time: float, now: float
         return
 
     path = state_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_storage_directory(path.parent)
     path.write_text(json.dumps(asdict(state), indent=2), encoding="utf-8")
+    finalize_storage_file(path)
 
 
 def clear_last_playback() -> None:

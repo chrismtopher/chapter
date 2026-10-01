@@ -6,6 +6,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 from urllib.error import HTTPError
 
+from abs_kids_player import __version__
 from abs_kids_player.api import (
     DEFAULT_REQUEST_TIMEOUT_SECONDS,
     AudiobookshelfClient,
@@ -22,6 +23,7 @@ class FakePlaybackClient(AudiobookshelfClient):
         super().__init__("https://books.example.com", "token")
         self.progress_time = progress_time
         self.calls: list[tuple[str, str]] = []
+        self.last_playback_body = None
 
     def get_progress(self, item_id: str) -> dict[str, float]:
         self.calls.append(("GET_PROGRESS", item_id))
@@ -30,6 +32,7 @@ class FakePlaybackClient(AudiobookshelfClient):
     def request(self, method: str, path: str, body=None, query=None):
         self.calls.append((method, path))
         if method == "POST" and path == "/api/items/book-1/play":
+            self.last_playback_body = body
             return {
                 "id": "play-1",
                 "duration": 300,
@@ -246,6 +249,7 @@ class ApiMetadataTest(unittest.TestCase):
 
         self.assertEqual(client.calls[:2], [("GET_PROGRESS", "book-1"), ("POST", "/api/items/book-1/play")])
         self.assertEqual(session.current_time, 42.0)
+        self.assertEqual(client.last_playback_body["deviceInfo"]["clientVersion"], __version__)
 
     def test_start_over_ignores_saved_progress(self) -> None:
         client = FakePlaybackClient()

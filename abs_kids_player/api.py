@@ -12,6 +12,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
+from . import __version__
 from .models import AudioTrack, Book, Chapter, PlaybackSession
 
 
@@ -310,7 +311,7 @@ class AudiobookshelfClient:
             body={
                 "deviceInfo": {
                     "clientName": "ABS Kids Player",
-                    "clientVersion": "0.1.0",
+                    "clientVersion": __version__,
                     "manufacturer": "Raspberry Pi",
                     "model": "Ubuntu",
                 },

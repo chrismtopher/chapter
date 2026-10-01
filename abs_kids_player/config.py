@@ -6,6 +6,8 @@ import threading
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
+from .storage import ensure_storage_directory, finalize_storage_file
+
 
 CONFIG_DIR = Path.home() / ".config" / "abs-kids-player"
 CONFIG_PATH = CONFIG_DIR / "config.json"
@@ -100,12 +102,12 @@ def save_config(config: AppConfig) -> None:
         temporary_path = path.with_name(
             f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp"
         )
-        path.parent.mkdir(parents=True, exist_ok=True)
+        ensure_storage_directory(path.parent)
         try:
             temporary_path.write_text(json.dumps(asdict(config), indent=2), encoding="utf-8")
-            temporary_path.chmod(0o600)
+            finalize_storage_file(temporary_path)
             temporary_path.replace(path)
-            path.chmod(0o600)
+            finalize_storage_file(path)
         finally:
             temporary_path.unlink(missing_ok=True)
 

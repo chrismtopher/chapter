@@ -8,6 +8,7 @@ Type=simple
 WorkingDirectory=/home/chapter/audiobookshelf-player
 Environment=ABS_KIDS_PLAYER_CONFIG_DIR=/home/chapter/.config/abs-kids-player
 Environment=ABS_KIDS_PLAYER_STATE_DIR=/home/chapter/.local/state/abs-kids-player
+Environment=ABS_KIDS_PLAYER_STORAGE_OWNER=chapter
 ExecStart=/usr/bin/python3 -m abs_kids_player.setup_server --ensure-wifi
 Restart=on-failure
 RestartSec=5

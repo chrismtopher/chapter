@@ -1,0 +1,109 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+command_name="$(basename "$0")"
+
+log_command() {
+  {
+    printf '%s' "$command_name"
+    printf ' %q' "$@"
+    printf '\n'
+  } >>"$MOCK_INSTALL_LOG"
+}
+
+log_command "$@"
+
+case "$command_name" in
+  sudo)
+    if [[ "${1:-}" == "-v" ]]; then
+      exit 0
+    fi
+    if [[ "${1:-}" == "-u" ]]; then
+      shift 2
+      if [[ "${1:-}" == "-H" ]]; then
+        shift
+      fi
+    fi
+    exec "$@"
+    ;;
+  apt-get|raspi-config|systemctl|usermod|chown)
+    exit 0
+    ;;
+  adduser)
+    user="${!#}"
+    mkdir -p "$MOCK_PI_ROOT/var/lib/mock-users"
+    touch "$MOCK_PI_ROOT/var/lib/mock-users/$user"
+    ;;
+  id)
+    [[ -f "$MOCK_PI_ROOT/var/lib/mock-users/${1:-}" ]]
+    ;;
+  getent)
+    case "${1:-}" in
+      passwd)
+        user="${2:-chapter}"
+        printf '%s:x:1000:1000::%s/home/%s:/bin/bash\n' "$user" "$MOCK_PI_ROOT" "$user"
+        ;;
+      group)
+        printf '%s:x:1000:chapter\n' "${2:-chapter}"
+        ;;
+      *)
+        exit 2
+        ;;
+    esac
+    ;;
+  git)
+    if [[ "${1:-}" == "clone" ]]; then
+      destination="${!#}"
+      mkdir -p "$destination"
+      /usr/bin/tar -C "$MOCK_PROJECT_SOURCE" \
+        --exclude .git --exclude .pycache --exclude __pycache__ \
+        -cf - . | /usr/bin/tar -C "$destination" -xf -
+      mkdir -p "$destination/.git"
+    fi
+    ;;
+  install)
+    args=()
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        -o|-g)
+          shift 2
+          ;;
+        -m)
+          args+=("$1" "$2")
+          shift 2
+          ;;
+        /etc/*|/usr/*)
+          args+=("${MOCK_PI_ROOT}$1")
+          shift
+          ;;
+        *)
+          args+=("$1")
+          shift
+          ;;
+      esac
+    done
+    destination="${args[${#args[@]}-1]}"
+    if [[ "${args[0]:-}" != "-d" ]]; then
+      if [[ "$destination" == */ ]]; then
+        mkdir -p "$destination"
+      else
+        mkdir -p "$(dirname "$destination")"
+      fi
+    fi
+    /usr/bin/install "${args[@]}"
+    ;;
+  sed)
+    if [[ "${1:-}" == "-i" ]]; then
+      shift
+      exec /usr/bin/sed -i '' "$@"
+    fi
+    exec /usr/bin/sed "$@"
+    ;;
+  tee)
+    exec /usr/bin/tee "$@"
+    ;;
+  *)
+    printf 'Unsupported mock command: %s\n' "$command_name" >&2
+    exit 127
+    ;;
+esac

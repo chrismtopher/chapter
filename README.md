@@ -2,6 +2,8 @@
 
 A simple Raspberry Pi friendly Chapter player for Audiobookshelf.
 
+Current release: **[v0.1.0](https://github.com/chrismtopher/chapter/tree/v0.1.0)**
+
 Chapter Player for Audiobookshelf is an independent third-party project and is not affiliated with or supported by the Audiobookshelf project.
 
 This prototype is a native Linux appliance app built with Python and GStreamer. It connects to an Audiobookshelf server with a user API token, shows a simple two-line OLED library and playback interface, starts playback sessions, resumes from Audiobookshelf progress, and syncs progress back while listening.
@@ -108,7 +110,15 @@ Run the test suite with:
 python3 -m unittest discover -s tests
 ```
 
+Run the isolated Raspberry Pi OS Lite installer simulation with:
+
+```bash
+tests/mock_raspberry_pi_install.sh
+```
+
 See [docs/appliance-design.md](docs/appliance-design.md) for hardware notes, UI behavior, and future direction.
+
+Release history is recorded in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

@@ -205,6 +205,16 @@ install_home() {
   getent passwd "$INSTALL_USER" | cut -d: -f6
 }
 
+prepare_storage_directories() {
+  log "Preparing Chapter storage"
+  local home_dir
+  home_dir="$(install_home)"
+  local config_dir="${home_dir}/.config/abs-kids-player"
+  local state_dir="${home_dir}/.local/state/abs-kids-player"
+  sudo_run install -d -m 0700 -o "$INSTALL_USER" -g "$INSTALL_USER" "$config_dir" "$state_dir"
+  sudo_run chown -R "$INSTALL_USER:$INSTALL_USER" "$config_dir" "$state_dir"
+}
+
 install_packages() {
   log "Installing system packages"
   sudo_run apt-get update
@@ -339,9 +349,11 @@ render_unit() {
   escaped_home_dir="$(sed_replacement "$home_dir")"
   escaped_user="$(sed_replacement "$INSTALL_USER")"
   sed \
-    -e "s|/home/chapter/audiobookshelf-player|${escaped_install_dir}|g" \
+    -e "s|/home/chapter/audiobookshelf-player|__CHAPTER_INSTALL_DIR__|g" \
     -e "s|/home/chapter|${escaped_home_dir}|g" \
+    -e "s|__CHAPTER_INSTALL_DIR__|${escaped_install_dir}|g" \
     -e "s|^User=chapter$|User=${escaped_user}|g" \
+    -e "s|ABS_KIDS_PLAYER_STORAGE_OWNER=chapter|ABS_KIDS_PLAYER_STORAGE_OWNER=${escaped_user}|g" \
     "$source" >"$target"
 }
 
@@ -384,6 +396,7 @@ main() {
   require_sudo
   install_packages
   ensure_user
+  prepare_storage_directories
   sync_project
   configure_spi_and_i2s
   install_asound_config

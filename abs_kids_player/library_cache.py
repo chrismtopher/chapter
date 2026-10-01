@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .config import AppConfig
 from .models import Book
+from .storage import ensure_storage_directory, finalize_storage_file
 
 
 LIBRARY_CACHE_PATH = Path.home() / ".local" / "state" / "abs-kids-player" / "library-cache.json"
@@ -79,9 +80,11 @@ def save_cached_books(config: AppConfig, books: list[Book]) -> None:
         ],
     }
     try:
-        path.parent.mkdir(parents=True, exist_ok=True)
+        ensure_storage_directory(path.parent)
         temporary_path.write_text(json.dumps(payload, separators=(",", ":")), encoding="utf-8")
+        finalize_storage_file(temporary_path)
         temporary_path.replace(path)
+        finalize_storage_file(path)
     except OSError as error:
         print(f"Library cache could not be saved: {error}")
 

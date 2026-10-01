@@ -11,6 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Callable
 from urllib.parse import parse_qs, urlparse
 
+from . import __version__
 from .api import AudiobookshelfClient, AudiobookshelfError, client_from_config
 from .bluetooth_audio import connected_bluetooth_audio_device
 from .config import (
@@ -465,7 +466,7 @@ PAGE = """<!doctype html>
     }}
     .status {{
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       border: 1px solid #dfe6e3;
       border-radius: 8px;
       overflow: hidden;
@@ -1044,6 +1045,10 @@ HEALTH_PAGE = """<!doctype html>
       <div class="value {abs_class}">{abs_value}</div>
     </div>
     <div class="row">
+      <div class="label">Software Version</div>
+      <div class="value"><strong>v{version}</strong></div>
+    </div>
+    <div class="row">
       <div class="label">Setup Page</div>
       <div class="value"><a href="/">Open setup</a></div>
     </div>
@@ -1054,7 +1059,7 @@ HEALTH_PAGE = """<!doctype html>
 
 
 class SetupHandler(BaseHTTPRequestHandler):
-    server_version = "AbsKidsSetup/0.1"
+    server_version = f"ChapterPlayer/{__version__}"
     protocol_version = "HTTP/1.1"
 
     def do_GET(self) -> None:
@@ -1572,6 +1577,7 @@ def render_health_page(wifi: WifiStatus, abs_status: tuple[bool, str]) -> str:
         wifi_value=render_wifi_status_value(wifi),
         abs_class="ok" if abs_ok else "bad",
         abs_value=render_audiobookshelf_status_value(abs_message),
+        version=html.escape(__version__),
     )
 
 
@@ -1601,6 +1607,10 @@ def render_status_panel(
           <div class="status-value {bt_class}">{bt_value}</div>
         </div>
         <div class="status-row">
+          <div class="status-label">Software Version</div>
+          <div class="status-value"><strong>v{version}</strong></div>
+        </div>
+        <div class="status-row">
           <div class="status-label">Currently Playing</div>
           {player_value}
         </div>
@@ -1613,6 +1623,7 @@ def render_status_panel(
         abs_value=render_audiobookshelf_status_value(abs_message),
         bt_class="ok" if bt_ok else "bad",
         bt_value=render_bluetooth_status_value(bt_message),
+        version=html.escape(__version__),
         player_value=render_player_status_value(player_status),
     )
 

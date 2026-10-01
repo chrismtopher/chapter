@@ -4,6 +4,7 @@ import io
 import unittest
 from unittest.mock import Mock, patch
 
+from abs_kids_player import __version__
 from abs_kids_player.config import SCREEN_SAVER_BOOKS, SCREEN_SAVER_CLOCK, AppConfig, PodcastConfig
 from abs_kids_player.bluetooth_audio import BluetoothDevice
 from abs_kids_player.player_control import WebPlayerStatus
@@ -67,6 +68,7 @@ class SetupServerTest(unittest.TestCase):
         self.assertNotIn("Setup Server", html)
         self.assertIn("Connected to <strong>Chapter WiFi</strong>", html)
         self.assertIn("Logged in to <strong>https://books.example.com</strong> as <strong>chapter</strong>", html)
+        self.assertIn(f"<strong>v{__version__}</strong>", html)
 
     def test_health_page_shows_failures(self) -> None:
         html = render_health_page(
@@ -90,6 +92,8 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn("Logged in to <strong>https://books.example.com</strong> as <strong>chapter</strong>", html)
         self.assertIn("Bluetooth", html)
         self.assertIn("Connected to <strong>Playroom Speaker</strong>", html)
+        self.assertIn("Software Version", html)
+        self.assertIn(f"<strong>v{__version__}</strong>", html)
         self.assertIn("Currently Playing", html)
         self.assertIn("The Hobbit", html)
         self.assertIn("data-now-playing-title", html)
@@ -169,6 +173,7 @@ class SetupServerTest(unittest.TestCase):
         from abs_kids_player.setup_server import SetupHandler
 
         self.assertEqual(SetupHandler.protocol_version, "HTTP/1.1")
+        self.assertEqual(SetupHandler.server_version, f"ChapterPlayer/{__version__}")
 
     def test_player_status_event_signature_ignores_live_time_only(self) -> None:
         paused = player_status_payload(
