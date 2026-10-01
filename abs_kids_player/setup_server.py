@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Callable
 from urllib.parse import parse_qs, urlparse
 
-from .api import AudiobookshelfClient, AudiobookshelfError
+from .api import AudiobookshelfClient, AudiobookshelfError, client_from_config
 from .bluetooth_audio import connected_bluetooth_audio_device
 from .config import (
     MAX_SLEEP_TIMER_MINUTES,
@@ -1460,6 +1460,7 @@ def login_and_refresh_player(server_url: str, username: str, password: str) -> A
         existing_config,
         server_url=server_url.strip(),
         token=client.token,
+        refresh_token=getattr(client, "refresh_token", ""),
         library_id=resolved_library_id,
         username=login_username(login_data, username),
     )
@@ -1542,7 +1543,7 @@ def audiobookshelf_status() -> tuple[bool, str]:
         return False, "Not configured"
 
     try:
-        client = AudiobookshelfClient(config.server_url, config.token)
+        client = client_from_config(config, AudiobookshelfClient)
         client.choose_library_id(config.library_id)
         username = saved_username(config.username)
         if not username:

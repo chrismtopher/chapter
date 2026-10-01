@@ -17,12 +17,61 @@ from abs_kids_player.config import (
     config_path,
     load_config,
     save_config,
+    saved_auth_tokens,
+    update_auth_tokens,
     valid_screen_saver_dim_percent,
     valid_sleep_timer_minutes,
 )
 
 
 class ConfigTest(unittest.TestCase):
+    def test_config_saves_refresh_token_and_rotates_matching_login(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):
+                save_config(
+                    AppConfig(
+                        server_url="https://books.example.com",
+                        token="old-access",
+                        refresh_token="old-refresh",
+                        username="chapter",
+                    )
+                )
+
+                updated = update_auth_tokens(
+                    "https://books.example.com/",
+                    "chapter",
+                    "new-access",
+                    "new-refresh",
+                )
+
+                self.assertTrue(updated)
+                self.assertEqual(saved_auth_tokens("https://books.example.com", "chapter"), (
+                    "new-access",
+                    "new-refresh",
+                ))
+
+    def test_token_rotation_cannot_overwrite_a_different_login(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):
+                save_config(
+                    AppConfig(
+                        server_url="https://books.example.com",
+                        token="current-access",
+                        refresh_token="current-refresh",
+                        username="another-user",
+                    )
+                )
+
+                updated = update_auth_tokens(
+                    "https://books.example.com",
+                    "chapter",
+                    "stale-access",
+                    "stale-refresh",
+                )
+
+                self.assertFalse(updated)
+                self.assertEqual(load_config().token, "current-access")
+
     def test_config_dir_environment_override_is_used_for_load_and_save(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):

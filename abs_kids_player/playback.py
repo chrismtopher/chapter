@@ -198,6 +198,11 @@ class GStreamerPlayback:
         if self.playbin is None or self.Gst is None:
             return
         track = self.current_track
+        if isinstance(self.client, AudiobookshelfClient):
+            try:
+                track.url = self.client.authenticated_media_url(track.url)
+            except AudiobookshelfError as error:
+                raise PlaybackError(str(error)) from error
         self.playbin.set_state(self.Gst.State.NULL)
         self.configure_audio_sink()
         self.playbin.set_property("uri", track.url)

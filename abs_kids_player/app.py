@@ -14,7 +14,7 @@ gi.require_version("Gst", "1.0")
 
 from gi.repository import Gdk, Gio, GLib, Gst, Gtk, Pango  # noqa: E402
 
-from .api import AudiobookshelfClient, AudiobookshelfError
+from .api import AudiobookshelfClient, AudiobookshelfError, client_from_config
 from .config import CONFIG_DIR, AppConfig, load_config, save_config
 from .models import Book, PlaybackSession
 
@@ -308,6 +308,7 @@ class KidsPlayerApp(Gtk.Application):
             self.config,
             server_url=server_url.strip(),
             token=token.strip(),
+            refresh_token="",
             library_id=library_id.strip(),
         )
         save_config(self.config)
@@ -324,7 +325,7 @@ class KidsPlayerApp(Gtk.Application):
 
     def load_books_worker(self) -> None:
         try:
-            client = AudiobookshelfClient(self.config.server_url, self.config.token)
+            client = client_from_config(self.config, AudiobookshelfClient)
             library_id = client.choose_library_id(self.config.library_id)
             books = client.get_books(library_id)
         except AudiobookshelfError as error:

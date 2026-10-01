@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import io
+import json
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 from abs_kids_player.api import (
     DEFAULT_REQUEST_TIMEOUT_SECONDS,
@@ -62,6 +65,86 @@ class FakeProgressClient(AudiobookshelfClient):
 
 
 class ApiMetadataTest(unittest.TestCase):
+    @staticmethod
+    def json_response(payload: dict) -> MagicMock:
+        response = MagicMock()
+        response.__enter__.return_value.read.return_value = json.dumps(payload).encode("utf-8")
+        return response
+
+    def test_login_prefers_jwt_tokens_and_requests_mobile_token_response(self) -> None:
+        response = self.json_response(
+            {
+                "user": {
+                    "username": "chapter",
+                    "token": "legacy-token",
+                    "accessToken": "access-token",
+                    "refreshToken": "refresh-token",
+                }
+            }
+        )
+
+        with patch("abs_kids_player.api.urlopen", return_value=response) as urlopen:
+            client, _data = AudiobookshelfClient.login(
+                "https://books.example.com",
+                "chapter",
+                "secret",
+            )
+
+        request = urlopen.call_args.args[0]
+        headers = {key.lower(): value for key, value in request.header_items()}
+        self.assertEqual(headers["x-return-tokens"], "true")
+        self.assertEqual(client.token, "access-token")
+        self.assertEqual(client.refresh_token, "refresh-token")
+
+    def test_login_keeps_legacy_server_compatibility(self) -> None:
+        response = self.json_response({"user": {"username": "chapter", "token": "legacy-token"}})
+
+        with patch("abs_kids_player.api.urlopen", return_value=response):
+            client, _data = AudiobookshelfClient.login(
+                "https://books.example.com",
+                "chapter",
+                "secret",
+            )
+
+        self.assertEqual(client.token, "legacy-token")
+        self.assertEqual(client.refresh_token, "")
+
+    def test_request_refreshes_rotated_tokens_and_retries_after_401(self) -> None:
+        unauthorized = HTTPError(
+            "https://books.example.com/api/me",
+            401,
+            "Unauthorized",
+            {},
+            io.BytesIO(b'{"error":"expired"}'),
+        )
+        refresh_response = self.json_response(
+            {"user": {"accessToken": "new-access", "refreshToken": "new-refresh"}}
+        )
+        api_response = self.json_response({"username": "chapter"})
+        saved_tokens: list[tuple[str, str]] = []
+        client = AudiobookshelfClient(
+            "https://books.example.com",
+            "expired-access",
+            refresh_token="old-refresh",
+            token_saver=lambda access, refresh: saved_tokens.append((access, refresh)),
+        )
+
+        with patch(
+            "abs_kids_player.api.urlopen",
+            side_effect=[unauthorized, refresh_response, api_response],
+        ) as urlopen:
+            data = client.request("GET", "/api/me")
+
+        refresh_request = urlopen.call_args_list[1].args[0]
+        retry_request = urlopen.call_args_list[2].args[0]
+        refresh_headers = {key.lower(): value for key, value in refresh_request.header_items()}
+        retry_headers = {key.lower(): value for key, value in retry_request.header_items()}
+        self.assertEqual(data, {"username": "chapter"})
+        self.assertEqual(refresh_request.full_url, "https://books.example.com/auth/refresh")
+        self.assertEqual(refresh_headers["x-refresh-token"], "old-refresh")
+        self.assertEqual(retry_headers["authorization"], "Bearer new-access")
+        self.assertEqual(saved_tokens, [("new-access", "new-refresh")])
+
     def test_primary_series_reads_modern_audiobookshelf_metadata(self) -> None:
         series = primary_series_from_metadata(
             {

@@ -63,6 +63,28 @@ class LibraryCacheTest(unittest.TestCase):
 
         self.assertEqual(cached, [])
 
+    def test_token_rotation_does_not_invalidate_cache(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "library-cache.json"
+            with patch.dict("os.environ", {"ABS_KIDS_PLAYER_LIBRARY_CACHE_PATH": str(path)}):
+                config = self.make_config()
+                save_cached_books(
+                    config,
+                    [Book("book-1", "The Hobbit", "J.R.R. Tolkien", 3600, "")],
+                )
+                rotated = AppConfig(
+                    server_url=config.server_url,
+                    token="rotated-access-token",
+                    refresh_token="rotated-refresh-token",
+                    library_id=config.library_id,
+                    username=config.username,
+                    podcasts=config.podcasts,
+                )
+
+                cached = load_cached_books(rotated)
+
+        self.assertEqual([book.id for book in cached], ["book-1"])
+
     def test_clear_cached_books_removes_cache_file(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "library-cache.json"

@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 import math
 import re
-from typing import Any
+import threading
+import time
+from typing import Any, Callable
 from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode, urljoin, urlparse, urlunparse
+from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 from .models import AudioTrack, Book, Chapter, PlaybackSession
@@ -21,6 +25,11 @@ SUPPORTED_MIME_TYPES = [
     "audio/webm",
 ]
 DEFAULT_REQUEST_TIMEOUT_SECONDS = 8
+ACCESS_TOKEN_REFRESH_SKEW_SECONDS = 60
+_AUTH_REFRESH_LOCK = threading.Lock()
+
+TokenLoader = Callable[[], tuple[str, str]]
+TokenSaver = Callable[[str, str], None]
 
 
 class AudiobookshelfError(RuntimeError):
@@ -28,9 +37,19 @@ class AudiobookshelfError(RuntimeError):
 
 
 class AudiobookshelfClient:
-    def __init__(self, server_url: str, token: str) -> None:
+    def __init__(
+        self,
+        server_url: str,
+        token: str,
+        refresh_token: str = "",
+        token_loader: TokenLoader | None = None,
+        token_saver: TokenSaver | None = None,
+    ) -> None:
         self.server_url = server_url.rstrip("/") + "/"
         self.token = token
+        self.refresh_token = refresh_token
+        self.token_loader = token_loader
+        self.token_saver = token_saver
 
     def _url(self, path: str, query: dict[str, Any] | None = None) -> str:
         url = urljoin(self.server_url, path.lstrip("/"))
@@ -39,10 +58,11 @@ class AudiobookshelfClient:
         return url
 
     def authenticated_media_url(self, path: str) -> str:
+        self.ensure_valid_access_token()
         parsed = urlparse(urljoin(self.server_url, path.lstrip("/")))
-        query = urlencode({"token": self.token})
-        if parsed.query:
-            query = parsed.query + "&" + query
+        query_items = [(key, value) for key, value in parse_qsl(parsed.query) if key != "token"]
+        query_items.append(("token", self.token))
+        query = urlencode(query_items)
         return urlunparse(parsed._replace(query=query))
 
     @classmethod
@@ -52,7 +72,7 @@ class AudiobookshelfClient:
         request = Request(
             urljoin(server_url, "login"),
             data=body,
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", "x-return-tokens": "true"},
             method="POST",
         )
         try:
@@ -69,7 +89,7 @@ class AudiobookshelfClient:
         token = extract_login_token(data)
         if not token:
             raise AudiobookshelfError("Audiobookshelf login did not return a user token.")
-        return cls(server_url, token), data
+        return cls(server_url, token, extract_refresh_token(data)), data
 
     def request(
         self,
@@ -78,7 +98,18 @@ class AudiobookshelfClient:
         body: dict[str, Any] | list[Any] | None = None,
         query: dict[str, Any] | None = None,
     ) -> Any:
+        return self._request(method, path, body=body, query=query, allow_refresh=True)
+
+    def _request(
+        self,
+        method: str,
+        path: str,
+        body: dict[str, Any] | list[Any] | None,
+        query: dict[str, Any] | None,
+        allow_refresh: bool,
+    ) -> Any:
         data = None
+        failed_token = self.token
         headers = {"Authorization": f"Bearer {self.token}"}
         if body is not None:
             data = json.dumps(body).encode("utf-8")
@@ -90,6 +121,8 @@ class AudiobookshelfClient:
                 payload = response.read()
         except HTTPError as error:
             details = error.read().decode("utf-8", errors="replace")
+            if error.code == 401 and allow_refresh and self.refresh_access_token(failed_token):
+                return self._request(method, path, body=body, query=query, allow_refresh=False)
             raise AudiobookshelfError(f"Audiobookshelf returned {error.code}: {details}") from error
         except TimeoutError as error:
             raise AudiobookshelfError("Audiobookshelf request timed out.") from error
@@ -103,6 +136,57 @@ class AudiobookshelfClient:
             return json.loads(payload.decode("utf-8"))
         except json.JSONDecodeError:
             return payload
+
+    def refresh_access_token(self, failed_token: str | None = None) -> bool:
+        with _AUTH_REFRESH_LOCK:
+            if self.token_loader is not None:
+                stored_token, stored_refresh_token = self.token_loader()
+                if stored_token and failed_token and stored_token != failed_token:
+                    self.token = stored_token
+                    self.refresh_token = stored_refresh_token
+                    return True
+                if stored_refresh_token:
+                    self.refresh_token = stored_refresh_token
+
+            if not self.refresh_token:
+                return False
+
+            request = Request(
+                self._url("/auth/refresh"),
+                data=b"",
+                headers={"x-refresh-token": self.refresh_token},
+                method="POST",
+            )
+            try:
+                with urlopen(request, timeout=DEFAULT_REQUEST_TIMEOUT_SECONDS) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+            except HTTPError as error:
+                error.read()
+                raise AudiobookshelfError(
+                    "Audiobookshelf login expired. Sign in again from the Chapter admin page."
+                ) from error
+            except TimeoutError as error:
+                raise AudiobookshelfError("Audiobookshelf token refresh timed out.") from error
+            except URLError as error:
+                raise AudiobookshelfError(f"Could not reach Audiobookshelf: {error.reason}") from error
+            except json.JSONDecodeError as error:
+                raise AudiobookshelfError("Audiobookshelf returned an invalid token refresh response.") from error
+
+            token = extract_login_token(data)
+            if not token:
+                raise AudiobookshelfError("Audiobookshelf token refresh did not return an access token.")
+            refresh_token = extract_refresh_token(data) or self.refresh_token
+            self.token = token
+            self.refresh_token = refresh_token
+            if self.token_saver is not None:
+                self.token_saver(token, refresh_token)
+            return True
+
+    def ensure_valid_access_token(self, skew_seconds: int = ACCESS_TOKEN_REFRESH_SKEW_SECONDS) -> None:
+        expires_at = jwt_expiration(self.token)
+        if expires_at is None or expires_at - time.time() > skew_seconds:
+            return
+        self.refresh_access_token(self.token)
 
     def get_libraries(self) -> list[dict[str, Any]]:
         data = self.request("GET", "/api/libraries")
@@ -472,14 +556,60 @@ def clean_author(value: Any) -> str:
 def extract_login_token(data: dict[str, Any]) -> str:
     user = data.get("user") or {}
     candidates = [
-        user.get("token"),
         user.get("accessToken"),
         user.get("access_token"),
-        data.get("token"),
         data.get("accessToken"),
         data.get("access_token"),
+        user.get("token"),
+        data.get("token"),
     ]
     for candidate in candidates:
         if isinstance(candidate, str) and candidate.strip():
             return candidate.strip()
     return ""
+
+
+def extract_refresh_token(data: dict[str, Any]) -> str:
+    user = data.get("user") or {}
+    candidates = [
+        user.get("refreshToken"),
+        user.get("refresh_token"),
+        data.get("refreshToken"),
+        data.get("refresh_token"),
+    ]
+    for candidate in candidates:
+        if isinstance(candidate, str) and candidate.strip():
+            return candidate.strip()
+    return ""
+
+
+def jwt_expiration(token: str) -> float | None:
+    parts = token.split(".")
+    if len(parts) != 3:
+        return None
+    try:
+        payload = parts[1] + "=" * (-len(parts[1]) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload).decode("utf-8"))
+        return float(data["exp"])
+    except (binascii.Error, KeyError, TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+
+
+def client_from_config(config: Any, client_factory=AudiobookshelfClient) -> AudiobookshelfClient:
+    if client_factory is not AudiobookshelfClient:
+        return client_factory(config.server_url, config.token)
+
+    from .config import saved_auth_tokens, update_auth_tokens
+
+    return client_factory(
+        config.server_url,
+        config.token,
+        refresh_token=config.refresh_token,
+        token_loader=lambda: saved_auth_tokens(config.server_url, config.username),
+        token_saver=lambda token, refresh_token: update_auth_tokens(
+            config.server_url,
+            config.username,
+            token,
+            refresh_token,
+        ),
+    )

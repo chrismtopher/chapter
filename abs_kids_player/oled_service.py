@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable
 
-from .api import AudiobookshelfClient, AudiobookshelfError
+from .api import AudiobookshelfClient, AudiobookshelfError, client_from_config
 from .appliance_io import AmpShutdownPin, InputEvent, Ky040Pins, NavigationRotaryInput, Sh1122Display, VolumeRotaryInput
 from .audio import (
     DEFAULT_MIXER_CONTROLS,
@@ -316,7 +316,7 @@ def load_library_books(
     if not config.is_ready:
         return []
 
-    client = client_factory(config.server_url, config.token)
+    client = client_from_config(config, client_factory)
     library_id = client.choose_library_id(config.library_id)
     return sorted_books_for_menu([*client.get_books(library_id), *podcast_books(config.podcasts)])
 
@@ -1637,7 +1637,7 @@ def play_book_command_result(command: MenuCommand, playback: GStreamerPlayback) 
 
         if not config.is_ready:
             return PlaybackCommandResult(error_frame=setup_address_frame())
-        client = AudiobookshelfClient(config.server_url, config.token)
+        client = client_from_config(config, AudiobookshelfClient)
         session = client.start_playback(
             command.book_id,
             start_over=command.start_over,

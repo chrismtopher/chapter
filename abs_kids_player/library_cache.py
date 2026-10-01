@@ -96,7 +96,6 @@ def clear_cached_books() -> None:
 def config_cache_key(config: AppConfig) -> str:
     identity = {
         "server_url": config.server_url.rstrip("/"),
-        "token": config.token,
         "library_id": config.library_id,
         "username": config.username,
         "podcasts": [asdict(podcast) for podcast in config.podcasts],

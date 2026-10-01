@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import asdict, dataclass, field
+import threading
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 
 
@@ -17,6 +18,7 @@ DEFAULT_SCREEN_SAVER_DIM_PERCENT = 15
 DEFAULT_SLEEP_TIMER_MINUTES = 30
 MIN_SLEEP_TIMER_MINUTES = 1
 MAX_SLEEP_TIMER_MINUTES = 240
+_CONFIG_LOCK = threading.RLock()
 
 
 @dataclass(frozen=True)
@@ -51,6 +53,7 @@ def default_podcasts() -> list[PodcastConfig]:
 class AppConfig:
     server_url: str = ""
     token: str = ""
+    refresh_token: str = ""
     library_id: str = ""
     username: str = ""
     control_click_enabled: bool = True
@@ -66,18 +69,20 @@ class AppConfig:
 
 
 def load_config() -> AppConfig:
-    path = config_path()
-    if not path.exists():
-        return AppConfig()
+    with _CONFIG_LOCK:
+        path = config_path()
+        if not path.exists():
+            return AppConfig()
 
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return AppConfig()
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return AppConfig()
 
     return AppConfig(
         server_url=str(data.get("server_url", "")),
         token=str(data.get("token", "")),
+        refresh_token=str(data.get("refresh_token", "")),
         library_id=str(data.get("library_id", "")),
         username=str(data.get("username", "")),
         control_click_enabled=bool(data.get("control_click_enabled", True)),
@@ -90,9 +95,51 @@ def load_config() -> AppConfig:
 
 
 def save_config(config: AppConfig) -> None:
-    path = config_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(asdict(config), indent=2), encoding="utf-8")
+    with _CONFIG_LOCK:
+        path = config_path()
+        temporary_path = path.with_name(
+            f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp"
+        )
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            temporary_path.write_text(json.dumps(asdict(config), indent=2), encoding="utf-8")
+            temporary_path.chmod(0o600)
+            temporary_path.replace(path)
+            path.chmod(0o600)
+        finally:
+            temporary_path.unlink(missing_ok=True)
+
+
+def saved_auth_tokens(server_url: str, username: str) -> tuple[str, str]:
+    with _CONFIG_LOCK:
+        config = load_config()
+        if not same_login(config, server_url, username):
+            return "", ""
+        return config.token, config.refresh_token
+
+
+def update_auth_tokens(
+    server_url: str,
+    username: str,
+    token: str,
+    refresh_token: str,
+) -> bool:
+    with _CONFIG_LOCK:
+        config = load_config()
+        if not same_login(config, server_url, username):
+            return False
+        if config.token == token and config.refresh_token == refresh_token:
+            return True
+        save_config(replace(config, token=token, refresh_token=refresh_token))
+        return True
+
+
+def same_login(config: AppConfig, server_url: str, username: str) -> bool:
+    configured_server = config.server_url.strip().rstrip("/").casefold()
+    expected_server = server_url.strip().rstrip("/").casefold()
+    configured_username = config.username.strip().casefold()
+    expected_username = username.strip().casefold()
+    return configured_server == expected_server and configured_username == expected_username
 
 
 def config_path() -> Path:

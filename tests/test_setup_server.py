@@ -41,6 +41,7 @@ from abs_kids_player.wifi import SETUP_HOTSPOT_SSID, WifiStatus
 
 class FakeAudiobookshelfClient:
     token = "token"
+    refresh_token = "refresh-token"
 
     def __init__(self, _server_url: str, _token: str) -> None:
         pass
@@ -633,6 +634,7 @@ class SetupServerTest(unittest.TestCase):
             config = login_and_refresh_player("https://books.example.com", "chapter", "password")
 
         self.assertEqual(config.server_url, "https://books.example.com")
+        self.assertEqual(config.refresh_token, "refresh-token")
         self.assertEqual(config.library_id, "library-1")
         self.assertEqual(config.username, "chapter")
         self.assertFalse(config.control_click_enabled)
