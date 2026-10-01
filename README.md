@@ -73,7 +73,7 @@ The setup page lets you enter your Wi-Fi details and log the player into Audiobo
 
 For a simple handout, see the [first boot one-sheet](docs/first-boot-one-sheet.md).
 
-For a package-style quick start card, open the [animated HTML](docs/first-boot-quick-start.html), [PDF](docs/first-boot-quick-start.pdf), or [JPG](docs/first-boot-quick-start.jpg).
+For a package-style quick start card, open the [PDF](docs/first-boot-quick-start.pdf) or [JPG](docs/first-boot-quick-start.jpg).
 
 ## Controls
 
