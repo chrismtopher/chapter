@@ -10,9 +10,14 @@ Printable STL files for the Chapter Player enclosure.
 
 ## Assembly Diagrams
 
+- [case-top-select-volume-reference.png](case-top-select-volume-reference.png) - CAD reference showing the top of the case and the `SELECT` and `VOLUME` labels
 - [case-front-cover-backside-oled-layout.jpg](case-front-cover-backside-oled-layout.jpg) - annotated CAD view of the back side of the front cover showing OLED installation
 - [case-back-interior-layout.jpg](case-back-interior-layout.jpg) - annotated CAD view into the case back showing heat press insert bosses and hardware mounting areas
 - [case-rotary-encoder-mount-layout.jpg](case-rotary-encoder-mount-layout.jpg) - annotated CAD view from the x=0/front-side angle showing the two KY-040 rotary encoder mounts
+
+![Top of case with Select and Volume labels](case-top-select-volume-reference.png)
+
+Use this CAD view as the reference for the top of the finished case. The left opening is labeled `SELECT` and the right opening is labeled `VOLUME`, matching the control names used throughout the Chapter documentation.
 
 ![Front cover back side OLED layout](case-front-cover-backside-oled-layout.jpg)
 
