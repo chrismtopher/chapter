@@ -4,6 +4,8 @@ This guide walks through building a fresh Chapter Player for Audiobookshelf on a
 
 It assumes you already have an Audiobookshelf server running somewhere on your network or reachable by URL. The player stores an Audiobookshelf user token, so create a dedicated Audiobookshelf user for the player instead of using an admin account.
 
+The software setup is handled by the installer. This guide covers the parts a new builder still needs: buying parts, flashing Raspberry Pi OS Lite, wiring the hardware, running the installer, opening the setup page, and troubleshooting.
+
 ## What To Buy
 
 - Raspberry Pi Zero 2 WH, or a Raspberry Pi Zero 2 W plus a soldered 40-pin header.
@@ -42,37 +44,39 @@ If `.local` does not resolve on your network, find the Pi's IP address from your
 ssh chapter@192.168.1.42
 ```
 
-## Update The Pi
+## Run The Installer
 
-```bash
-sudo apt update
-sudo apt full-upgrade -y
-sudo reboot
-```
-
-Reconnect after the reboot:
-
-```bash
-ssh chapter@chapter-player.local
-```
-
-## Recommended Automated Install
-
-Run the installer from the Pi:
+Run this on the Pi:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash
-sudo reboot
 ```
 
-The installer does the software work from the sections below:
+The installer handles the software setup:
 
-- installs system packages
-- makes sure the `chapter` service user exists
+- installs required system packages
+- creates or updates the `chapter` service user
 - clones or updates the project in `/home/chapter/audiobookshelf-player`
-- enables SPI
-- configures the MAX98357A I2S audio overlay and ALSA mixer
-- installs the setup page, OLED, boot splash, port 80 proxy, Bluetooth unblock, and captive portal DNS services
+- enables SPI for the OLED
+- configures the MAX98357A I2S audio overlay
+- installs the ALSA mixer config
+- installs and enables the setup page service
+- installs and enables the OLED service and boot splash
+- installs the port 80 setup-page proxy
+- installs the captive portal DNS helper
+- installs the Bluetooth unblock helper
+
+When it finishes, it will tell you to reboot. If you have not wired the hardware yet, shut the Pi down instead:
+
+```bash
+sudo shutdown -h now
+```
+
+If the hardware is already wired, reboot:
+
+```bash
+sudo reboot
+```
 
 To inspect the installer before running it:
 
@@ -80,94 +84,11 @@ To inspect the installer before running it:
 curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh
 less install-raspberry-pi.sh
 bash install-raspberry-pi.sh
-sudo reboot
 ```
-
-To install and reboot automatically:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash -s -- --yes
-```
-
-## Manual Install
-
-The automated installer is recommended. The rest of this guide shows the same steps manually, which is useful for troubleshooting or custom builds.
-
-## Install System Packages
-
-```bash
-sudo apt update
-sudo apt install -y git curl avahi-daemon network-manager rfkill gpiod fonts-dejavu-core \
-  python3-pil python3-spidev python3-gpiozero python3-lgpio \
-  alsa-utils gstreamer1.0-alsa python3-gi python3-gst-1.0 gir1.2-gstreamer-1.0 \
-  gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
-  gstreamer1.0-libav dnsmasq-base bluez
-```
-
-Make sure the `chapter` user can use audio, GPIO, and SPI devices:
-
-```bash
-sudo usermod -aG audio,gpio,spi,i2c chapter
-```
-
-## Clone The Project
-
-Use the GitHub URL for this repository:
-
-```bash
-cd /home/chapter
-git clone https://github.com/chrismtopher/chapter.git audiobookshelf-player
-cd /home/chapter/audiobookshelf-player
-```
-
-Check that Python can see the project:
-
-```bash
-python3 -m abs_kids_player.setup_server --help
-python3 -m abs_kids_player.oled_service --help
-```
-
-## Enable SPI
-
-The OLED uses SPI. Enable it with:
-
-```bash
-sudo raspi-config
-```
-
-Choose **Interface Options**, enable **SPI**, then exit.
-
-You can also do this non-interactively:
-
-```bash
-sudo raspi-config nonint do_spi 0
-```
-
-Reboot so the group membership and SPI change both take effect:
-
-```bash
-sudo reboot
-```
-
-Reconnect and check for the SPI device:
-
-```bash
-ssh chapter@chapter-player.local
-ls /dev/spidev*
-groups
-```
-
-You should see `/dev/spidev0.0`, and `groups` should include `gpio`, `spi`, and `audio`.
 
 ## Wire The Hardware
 
-Power the Pi off before wiring:
-
-```bash
-sudo shutdown -h now
-```
-
-Disconnect power, then wire the parts.
+Power the Pi off before wiring. Disconnect power, then wire the parts.
 
 ### OLED
 
@@ -217,128 +138,17 @@ Power the KY-040 from 3.3 V, not 5 V.
 
 The default software leaves `SD` / `SD_MODE` alone. That lets the breakout's own mode resistor choose the default mono mix.
 
-## Configure I2S Audio
+## First Boot
 
-Power the Pi back on and reconnect with SSH.
+After the installer has run and the hardware is wired, power the Pi on.
 
-Back up the boot config:
+On boot, the OLED should show `chapter` and then one of these:
 
-```bash
-sudo cp /boot/firmware/config.txt /boot/firmware/config.txt.bak
-```
+- setup page address
+- setup hotspot instructions
+- library home screen
 
-Edit the file:
-
-```bash
-sudo nano /boot/firmware/config.txt
-```
-
-If you see this line, comment it out:
-
-```text
-dtparam=audio=on
-```
-
-Add these lines near the end:
-
-```text
-dtoverlay=max98357a
-dtoverlay=i2s-mmap
-```
-
-Create `/etc/asound.conf`:
-
-```bash
-sudo nano /etc/asound.conf
-```
-
-Paste:
-
-```text
-pcm.speakerbonnet {
-   type hw
-   card 0
-}
-
-pcm.!default {
-   type plug
-   slave.pcm "dmixer"
-}
-
-pcm.dmixer {
-   type dmix
-   ipc_key 1024
-   ipc_perm 0666
-   slave {
-     pcm "speakerbonnet"
-     period_time 0
-     period_size 1024
-     buffer_size 8192
-     rate 44100
-     channels 2
-   }
-}
-
-ctl.dmixer {
-  type hw
-  card 0
-}
-```
-
-Reboot:
-
-```bash
-sudo reboot
-```
-
-Check that ALSA sees the amp:
-
-```bash
-aplay -l
-speaker-test -t wav -c 2
-```
-
-Press `Ctrl+C` to stop the speaker test.
-
-## Test The OLED
-
-From the project directory:
-
-```bash
-cd /home/chapter/audiobookshelf-player
-python3 -m abs_kids_player.oled_test
-```
-
-The display should briefly turn all pixels on, then show a few text screens. If the screen is blank, power off and re-check `VCC`, `GND`, `CLK`, `DIN`, `CS`, `DC`, and `RES`.
-
-## Install The Services
-
-Install the setup web page, OLED service, boot splash, port 80 proxy, Bluetooth unblock helper, and captive portal DNS config:
-
-```bash
-cd /home/chapter/audiobookshelf-player
-
-sudo install -m 0644 deploy/audiobookshelf-player-boot-splash.service /etc/systemd/system/
-sudo install -m 0644 deploy/audiobookshelf-player-oled.service /etc/systemd/system/
-sudo install -m 0644 deploy/audiobookshelf-player-setup-system.service /etc/systemd/system/audiobookshelf-player-setup.service
-sudo install -m 0644 deploy/audiobookshelf-player-bluetooth-unblock.service /etc/systemd/system/
-
-sudo install -m 0755 deploy/audiobookshelf-player-port80-proxy /usr/local/sbin/audiobookshelf-player-port80-proxy
-sudo install -m 0644 deploy/audiobookshelf-player-port80-forward.service /etc/systemd/system/
-
-sudo mkdir -p /etc/NetworkManager/dnsmasq-shared.d
-sudo install -m 0644 deploy/audiobookshelf-player-captive-portal-dnsmasq.conf /etc/NetworkManager/dnsmasq-shared.d/audiobookshelf-player-captive-portal.conf
-
-sudo systemctl daemon-reload
-sudo systemctl enable audiobookshelf-player-boot-splash.service
-sudo systemctl enable audiobookshelf-player-oled.service
-sudo systemctl enable audiobookshelf-player-setup.service
-sudo systemctl enable audiobookshelf-player-port80-forward.service
-sudo systemctl enable audiobookshelf-player-bluetooth-unblock.service
-sudo reboot
-```
-
-After reboot, the OLED should show `chapter` and then either the setup address, the setup hotspot instructions, or the library home screen.
+The installer starts the setup page and OLED services automatically on boot.
 
 ## Open The Setup Page
 
@@ -377,23 +187,6 @@ The password is sent to Audiobookshelf once. The player stores the returned user
 
 If no library is selected, the player uses the user's default audiobook library or the first accessible audiobook library.
 
-## Check Service Status
-
-```bash
-systemctl status audiobookshelf-player-setup.service
-systemctl status audiobookshelf-player-oled.service
-systemctl status audiobookshelf-player-port80-forward.service
-journalctl -u audiobookshelf-player-setup.service -n 80
-tail -n 80 /home/chapter/audiobookshelf-player-oled.log
-```
-
-The setup page health endpoint should also respond:
-
-```bash
-curl http://localhost:47831/health
-curl http://localhost/health
-```
-
 ## Using The Player
 
 - Turn the navigation knob to browse books.
@@ -404,14 +197,14 @@ curl http://localhost/health
 
 ## Updating Later
 
+Run the installer again:
+
 ```bash
-cd /home/chapter/audiobookshelf-player
-git pull
-sudo systemctl restart audiobookshelf-player-setup.service
-sudo systemctl restart audiobookshelf-player-oled.service
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash
+sudo reboot
 ```
 
-If service files changed, reinstall them with the commands in the service section.
+It updates the project checkout and refreshes the installed service files.
 
 ## Troubleshooting
 
@@ -421,45 +214,62 @@ Make sure the Pi was flashed with SSH enabled, the hostname is `chapter-player`,
 
 ### OLED Is Blank
 
-Run:
+Check that SPI exists and that the `chapter` user has device permissions:
 
 ```bash
 ls /dev/spidev*
-groups
+groups chapter
+```
+
+Run the OLED test from the installed project:
+
+```bash
+cd /home/chapter/audiobookshelf-player
 python3 -m abs_kids_player.oled_test
 ```
 
-If `/dev/spidev0.0` is missing, SPI is not enabled. If `groups` does not include `spi` and `gpio`, re-run the `usermod` command and reboot.
+If `/dev/spidev0.0` is missing, rerun the installer and reboot. If the OLED test still stays blank, power off and re-check `VCC`, `GND`, `CLK`, `DIN`, `CS`, `DC`, and `RES`.
 
 ### No Sound
 
-Run:
+Check that ALSA sees the amp:
 
 ```bash
 aplay -l
 speaker-test -t wav -c 2
 ```
 
-If there is no sound card, re-check `/boot/firmware/config.txt` and the I2S wiring. If there is a sound card but no audio, re-check the speaker wires and MAX98357A `VIN` and `GND`.
+Press `Ctrl+C` to stop the speaker test.
+
+If there is no sound card, rerun the installer and reboot. If there is a sound card but no audio, re-check the speaker wires and MAX98357A `VIN` and `GND`.
 
 ### Setup Page Does Not Open
 
-Run:
+Check the setup service and health endpoint:
 
 ```bash
 systemctl status audiobookshelf-player-setup.service
 curl http://localhost:47831/health
 ```
 
-If the direct port works but `http://chapter-player.local` does not, check:
+If the direct port works but `http://chapter-player.local` does not, check the port 80 proxy:
 
 ```bash
 systemctl status audiobookshelf-player-port80-forward.service
+curl http://localhost/health
 ```
 
 ### The Pi Shows The Setup Hotspot Instead Of Joining Wi-Fi
 
 Connect to `Chapter-Setup`, open `http://10.42.0.1`, and enter the home Wi-Fi credentials. The setup page uses NetworkManager to switch from the hotspot to the selected Wi-Fi network.
+
+### View Service Logs
+
+```bash
+journalctl -u audiobookshelf-player-setup.service -n 80
+journalctl -u audiobookshelf-player-oled.service -n 80
+tail -n 80 /home/chapter/audiobookshelf-player-oled.log
+```
 
 ## References
 
