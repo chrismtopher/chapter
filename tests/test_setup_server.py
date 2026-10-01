@@ -22,7 +22,7 @@ from abs_kids_player.setup_server import (
     render_health_page,
     render_podcasts_card,
     render_player_status_value,
-    render_reset_card,
+    render_system_card,
     render_settings_card,
     render_status_panel,
     render_wifi_card,
@@ -92,8 +92,7 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn("Logged in to <strong>https://books.example.com</strong> as <strong>chapter</strong>", html)
         self.assertIn("Bluetooth", html)
         self.assertIn("Connected to <strong>Playroom Speaker</strong>", html)
-        self.assertIn("Software Version", html)
-        self.assertIn(f"<strong>v{__version__}</strong>", html)
+        self.assertNotIn("Software Version", html)
         self.assertIn("Currently Playing", html)
         self.assertIn("The Hobbit", html)
         self.assertIn("data-now-playing-title", html)
@@ -110,6 +109,11 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn('data-volume-slider', html)
         self.assertIn('name="volume" type="range"', html)
         self.assertNotIn(">Set</button>", html)
+
+    def test_status_categories_use_full_width_rows(self) -> None:
+        self.assertIn("grid-template-columns: 1fr;", PAGE)
+        self.assertIn("grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);", PAGE)
+        self.assertIn("overflow-wrap: anywhere;", PAGE)
 
     def test_status_panel_shows_bluetooth_disconnected_by_default(self) -> None:
         html = render_status_panel(
@@ -483,18 +487,23 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn("<h1>Chapter Player for Audiobookshelf</h1>", PAGE)
         self.assertNotIn("Administration", PAGE)
         self.assertIn('role="tablist"', PAGE)
-        for tab_name in ("overview", "settings", "podcasts", "connections", "reset"):
+        for tab_name in ("overview", "settings", "podcasts", "connections", "system"):
             self.assertIn(f'data-tab-target="{tab_name}"', PAGE)
             self.assertIn(f'data-tab-panel="{tab_name}"', PAGE)
+        self.assertIn('data-tab-target="system">System</button>', PAGE)
+        self.assertNotIn('data-tab-target="reset"', PAGE)
         self.assertIn('aria-selected="true"', PAGE)
         self.assertIn('window.localStorage.setItem(tabStorageKey, tabName)', PAGE)
         self.assertIn('window.localStorage.getItem(tabStorageKey)', PAGE)
         self.assertIn('event.key === "ArrowRight"', PAGE)
         self.assertIn('event.key === "ArrowLeft"', PAGE)
 
-    def test_reset_card_uses_in_page_confirmations(self) -> None:
-        html = render_reset_card()
+    def test_system_card_shows_version_and_uses_in_page_confirmations(self) -> None:
+        html = render_system_card()
 
+        self.assertIn('<h2 id="system-heading">System</h2>', html)
+        self.assertIn("Software Version", html)
+        self.assertIn(f"<strong>v{__version__}</strong>", html)
         self.assertIn("Restore Device to Default Settings", html)
         self.assertIn('data-confirm-trigger="reboot"', html)
         self.assertIn('data-confirm-panel="reboot" hidden', html)

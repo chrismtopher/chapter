@@ -392,6 +392,21 @@ PAGE = """<!doctype html>
       border-radius: 8px;
       overflow: hidden;
     }}
+    .system-version {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 14px 16px;
+      border: 1px solid #dfe6e3;
+      border-radius: 8px;
+      background: #f8faf9;
+    }}
+    .system-version-label {{
+      color: #59616d;
+      font-size: 0.9rem;
+    }}
     .system-action {{
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -466,26 +481,30 @@ PAGE = """<!doctype html>
     }}
     .status {{
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       border: 1px solid #dfe6e3;
       border-radius: 8px;
       overflow: hidden;
     }}
     .status-row {{
-      padding: 12px;
-      border-left: 1px solid #dfe6e3;
-    }}
-    .status-row:first-child {{ border-left: 0; }}
-    .status-row:last-child {{
-      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      padding: 14px 16px;
       border-top: 1px solid #dfe6e3;
-      border-left: 0;
+    }}
+    .status-row:first-child {{ border-top: 0; }}
+    .status-row:last-child {{
       padding: 16px;
     }}
     .status-label {{
       color: #59616d;
       font-size: 0.88rem;
-      margin-bottom: 3px;
+    }}
+    .status-value {{
+      min-width: 0;
+      overflow-wrap: anywhere;
     }}
     .status-value strong {{
       font-weight: 800;
@@ -524,8 +543,9 @@ PAGE = """<!doctype html>
       }}
       .status-row,
       .status-row:first-child {{
+        grid-template-columns: 1fr;
+        gap: 3px;
         border-top: 1px solid #dfe6e3;
-        border-left: 0;
       }}
       .status-row:first-child {{
         border-top: 0;
@@ -568,7 +588,7 @@ PAGE = """<!doctype html>
       <button class="tab-button" id="tab-settings" type="button" role="tab" aria-selected="false" aria-controls="panel-settings" tabindex="-1" data-tab-target="settings">Settings</button>
       <button class="tab-button" id="tab-podcasts" type="button" role="tab" aria-selected="false" aria-controls="panel-podcasts" tabindex="-1" data-tab-target="podcasts">Podcasts</button>
       <button class="tab-button" id="tab-connections" type="button" role="tab" aria-selected="false" aria-controls="panel-connections" tabindex="-1" data-tab-target="connections">Setup</button>
-      <button class="tab-button" id="tab-reset" type="button" role="tab" aria-selected="false" aria-controls="panel-reset" tabindex="-1" data-tab-target="reset">Reset</button>
+      <button class="tab-button" id="tab-system" type="button" role="tab" aria-selected="false" aria-controls="panel-system" tabindex="-1" data-tab-target="system">System</button>
     </nav>
     <div class="tab-panel" id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" data-tab-panel="overview">
       {status_panel}
@@ -598,8 +618,8 @@ PAGE = """<!doctype html>
         </form>
       </section>
     </div>
-    <div class="tab-panel" id="panel-reset" role="tabpanel" aria-labelledby="tab-reset" data-tab-panel="reset" hidden>
-      {reset_card}
+    <div class="tab-panel" id="panel-system" role="tabpanel" aria-labelledby="tab-system" data-tab-panel="system" hidden>
+      {system_card}
     </div>
   </main>
   <script>
@@ -1272,7 +1292,7 @@ class SetupHandler(BaseHTTPRequestHandler):
             settings_card=render_settings_card(config),
             podcasts_card=render_podcasts_card(config),
             wifi_card=render_wifi_card(wifi),
-            reset_card=render_reset_card(),
+            system_card=render_system_card(),
             message=message_html,
             server_url=html.escape(server_url if server_url is not None else config.server_url),
             library_id=html.escape(library_id if library_id is not None else config.library_id),
@@ -1607,10 +1627,6 @@ def render_status_panel(
           <div class="status-value {bt_class}">{bt_value}</div>
         </div>
         <div class="status-row">
-          <div class="status-label">Software Version</div>
-          <div class="status-value"><strong>v{version}</strong></div>
-        </div>
-        <div class="status-row">
           <div class="status-label">Currently Playing</div>
           {player_value}
         </div>
@@ -1623,15 +1639,18 @@ def render_status_panel(
         abs_value=render_audiobookshelf_status_value(abs_message),
         bt_class="ok" if bt_ok else "bad",
         bt_value=render_bluetooth_status_value(bt_message),
-        version=html.escape(__version__),
         player_value=render_player_status_value(player_status),
     )
 
 
-def render_reset_card() -> str:
+def render_system_card() -> str:
     return """
-    <section class="card" aria-labelledby="reset-heading">
-      <h2 id="reset-heading">Reset</h2>
+    <section class="card" aria-labelledby="system-heading">
+      <h2 id="system-heading">System</h2>
+      <div class="system-version">
+        <span class="system-version-label">Software Version</span>
+        <strong>v{version}</strong>
+      </div>
       <div class="system-actions">
         <div class="system-action">
           <div>
@@ -1669,7 +1688,7 @@ def render_reset_card() -> str:
         </div>
       </div>
     </section>
-    """
+    """.format(version=html.escape(__version__))
 
 
 def render_settings_card(config: AppConfig) -> str:
