@@ -1278,8 +1278,6 @@ class SetupHandler(BaseHTTPRequestHandler):
         if message:
             css_class = "message error" if is_error else "message"
             message_html = f'<div class="{css_class}">{message}</div>'
-        elif config.is_ready:
-            message_html = '<div class="message">This player already has an Audiobookshelf login saved.</div>'
 
         wifi = wifi_status()
         body = PAGE.format(

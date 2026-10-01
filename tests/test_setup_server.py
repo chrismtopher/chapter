@@ -115,6 +115,33 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn("grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);", PAGE)
         self.assertIn("overflow-wrap: anywhere;", PAGE)
 
+    def test_saved_login_does_not_add_redundant_page_message(self) -> None:
+        handler = object.__new__(SetupHandler)
+        handler.send_response = Mock()
+        handler.send_header = Mock()
+        handler.end_headers = Mock()
+        handler.wfile = io.BytesIO()
+        config = AppConfig(server_url="https://books.example.com", token="token", username="chapter")
+
+        with (
+            patch("abs_kids_player.setup_server.load_config", return_value=config),
+            patch(
+                "abs_kids_player.setup_server.wifi_status",
+                return_value=WifiStatus(connected=True, ssid="Chapter WiFi"),
+            ),
+            patch(
+                "abs_kids_player.setup_server.audiobookshelf_status",
+                return_value=(True, "Logged in to https://books.example.com as chapter"),
+            ),
+            patch("abs_kids_player.setup_server.load_web_player_status", return_value=WebPlayerStatus()),
+            patch("abs_kids_player.setup_server.bluetooth_status", return_value=(False, "Not connected")),
+        ):
+            handler.send_page()
+
+        page = handler.wfile.getvalue().decode("utf-8")
+        self.assertNotIn("This player already has an Audiobookshelf login saved.", page)
+        self.assertIn("Logged in to <strong>https://books.example.com</strong> as <strong>chapter</strong>", page)
+
     def test_status_panel_shows_bluetooth_disconnected_by_default(self) -> None:
         html = render_status_panel(
             WifiStatus(connected=True, ssid="Chapter WiFi"),
