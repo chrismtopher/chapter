@@ -47,6 +47,8 @@ Recommended build:
 
 The wiring tables are in the [install guide](docs/raspberry-pi-zero-2w-install.md#wire-the-hardware).
 
+Printable case files are in [hardware/case](hardware/case).
+
 ## Setup
 
 After installation and reboot, open the setup page from a phone or computer on the same network:
