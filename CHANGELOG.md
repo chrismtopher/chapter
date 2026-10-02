@@ -4,6 +4,8 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+- Return from the library to the current playback controls after five seconds of inactivity while audio is playing.
+
 ## [0.2.1] - 2026-10-02
 
 - Documented the trusted-local-network security model and safe deployment boundaries.

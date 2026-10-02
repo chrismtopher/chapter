@@ -491,6 +491,51 @@ class ApplianceMenuTest(unittest.TestCase):
         self.assertEqual(command.type, CommandType.HOME)
         self.assertEqual(menu.screen, Screen.LIBRARY)
 
+    def test_home_returns_to_active_playback_after_five_seconds(self) -> None:
+        menu = ApplianceMenu(BOOKS)
+        menu.set_session(make_session())
+        menu.rotate_nav(-2)
+        menu.click_nav()
+
+        self.assertFalse(menu.tick_home_return_timeout(4.9))
+        self.assertEqual(menu.screen, Screen.LIBRARY)
+        self.assertTrue(menu.tick_home_return_timeout(0.1))
+        self.assertEqual(menu.screen, Screen.PLAYING)
+        self.assertEqual(menu.playing_action_index, PLAYING_PLAY_INDEX)
+
+    def test_home_return_timeout_resets_on_input_activity(self) -> None:
+        menu = ApplianceMenu(BOOKS)
+        menu.set_session(make_session())
+        menu.rotate_nav(-2)
+        menu.click_nav()
+
+        self.assertFalse(menu.tick_home_return_timeout(4.0))
+        menu.note_input_activity()
+        self.assertFalse(menu.tick_home_return_timeout(4.9))
+        self.assertEqual(menu.screen, Screen.LIBRARY)
+        self.assertTrue(menu.tick_home_return_timeout(0.1))
+        self.assertEqual(menu.screen, Screen.PLAYING)
+
+    def test_home_does_not_return_to_paused_playback(self) -> None:
+        menu = ApplianceMenu(BOOKS)
+        menu.set_session(make_session(), is_playing=False)
+        menu.rotate_nav(-2)
+        menu.click_nav()
+
+        self.assertFalse(menu.tick_home_return_timeout(10.0))
+        self.assertEqual(menu.screen, Screen.LIBRARY)
+
+    def test_home_return_timeout_stops_if_playback_pauses(self) -> None:
+        menu = ApplianceMenu(BOOKS)
+        menu.set_session(make_session())
+        menu.rotate_nav(-2)
+        menu.click_nav()
+
+        self.assertFalse(menu.tick_home_return_timeout(4.0))
+        menu.update_playback(menu.current_time, is_playing=False)
+        self.assertFalse(menu.tick_home_return_timeout(2.0))
+        self.assertEqual(menu.screen, Screen.LIBRARY)
+
     def test_volume_encoder_emits_volume_commands(self) -> None:
         menu = ApplianceMenu(BOOKS)
 

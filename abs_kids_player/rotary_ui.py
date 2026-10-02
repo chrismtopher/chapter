@@ -306,6 +306,7 @@ VOLUME_STEP_PERCENT = 5
 VOLUME_OVERLAY_SECONDS = 3
 PLAYING_TITLE_WIDTH = 18
 CHAPTER_CONFIRM_TIMEOUT_SECONDS = 5.0
+HOME_RETURN_TIMEOUT_SECONDS = 5.0
 SECTION_LETTER_HOLD_SECONDS = 1.0
 SECTION_LETTER_FADE_SECONDS = 0.8
 SECTION_LETTER_MAX_FILL = 255
@@ -336,6 +337,7 @@ class ApplianceMenu:
         self.confirm_yes = True
         self.chapter_confirm_direction = "next"
         self.chapter_confirm_elapsed = 0.0
+        self.home_return_elapsed = 0.0
         self.pending_chapter_index = 0
         self.sleep_confirm_seconds = 30
         self.bluetooth_enabled = True
@@ -380,6 +382,7 @@ class ApplianceMenu:
         self.pending_chapter_index = 0
         self.confirm_yes = True
         self.chapter_confirm_elapsed = 0.0
+        self.home_return_elapsed = 0.0
         self.sleep_confirm_seconds = 30
         self.screen = Screen.LIBRARY
         self.reset_title_scroll()
@@ -402,6 +405,9 @@ class ApplianceMenu:
     def update_playback(self, current_time: float, is_playing: bool) -> None:
         self.current_time = max(0, current_time)
         self.is_playing = is_playing
+
+    def note_input_activity(self) -> None:
+        self.home_return_elapsed = 0.0
 
     def rotate_nav(self, steps: int) -> list[MenuCommand]:
         if steps == 0:
@@ -724,6 +730,23 @@ class ApplianceMenu:
         if self.chapter_confirm_elapsed < timeout_seconds:
             return False
         self.chapter_confirm_elapsed = 0.0
+        self.screen = Screen.PLAYING
+        return True
+
+    def tick_home_return_timeout(
+        self,
+        elapsed_seconds: float,
+        timeout_seconds: float = HOME_RETURN_TIMEOUT_SECONDS,
+    ) -> bool:
+        if self.screen != Screen.LIBRARY or self.session is None or not self.is_playing:
+            self.home_return_elapsed = 0.0
+            return False
+        self.home_return_elapsed += max(0.0, elapsed_seconds)
+        if self.home_return_elapsed < timeout_seconds:
+            return False
+        self.home_return_elapsed = 0.0
+        self.playing_action_index = PLAYING_PLAY_INDEX
+        self.reset_title_scroll()
         self.screen = Screen.PLAYING
         return True
 

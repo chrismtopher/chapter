@@ -1090,6 +1090,7 @@ def run_oled_service(
                 )
                 if input_activity:
                     last_input_at = now
+                    menu.note_input_activity()
                     if sleep_timer.wake():
                         menu.dismiss_sleep_confirmation()
                         menu_changed = True
@@ -1314,6 +1315,9 @@ def run_oled_service(
                             pixels_per_second=DEFAULT_TITLE_SCROLL_PX_PER_SECOND,
                         )
                         if menu.tick_chapter_confirm_timeout(loop_elapsed):
+                            cached_home_frame = None
+                            home_frame_loaded_at = now
+                        if menu.tick_home_return_timeout(loop_elapsed):
                             cached_home_frame = None
                             home_frame_loaded_at = now
                     if (
