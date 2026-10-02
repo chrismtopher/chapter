@@ -4,6 +4,8 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+- Added System-tab release checks and one-button stable software updates that preserve device settings.
+
 ## [0.2.2] - 2026-10-02
 
 - Return from the library to the current playback controls after five seconds of inactivity while audio is playing.

@@ -245,6 +245,8 @@ sudo reboot
 
 This reinstalls the tested `v0.2.2` release and refreshes the installed service files. To move to a later release, use the versioned command published for that release. For development builds, the installer also accepts `--release-ref REF` or the `CHAPTER_RELEASE_REF` environment variable.
 
+After installing a release that includes device updates, open the **System** tab on the Chapter administration page. The player checks the public Chapter release tags and offers an **Update** button only when a newer stable version is available. Updating pauses playback, keeps the device configuration and listening state, installs the newest stable release, and restarts the player services. Keep the player powered on and connected to the internet until the administration page becomes available again.
+
 ## Troubleshooting
 
 ### SSH Does Not Connect

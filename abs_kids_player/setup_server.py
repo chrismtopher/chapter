@@ -39,6 +39,7 @@ from .library_cache import clear_cached_books
 from .player_state import clear_last_playback
 from .player_control import WebPlayerStatus, load_web_player_status, queue_web_player_command
 from .podcast import PodcastError, resolve_podcast_config
+from .software_update import UPDATE_SERVICE_NAME, update_status_payload
 from .wifi import (
     SETUP_HOTSPOT_SSID,
     SETUP_HOTSPOT_URL,
@@ -430,6 +431,16 @@ PAGE = """<!doctype html>
       color: #59616d;
       font-size: 0.9rem;
     }}
+    .system-version-value {{
+      text-align: right;
+    }}
+    .system-update-status {{
+      display: block;
+      margin-top: 3px;
+      color: #59616d;
+      font-size: 0.82rem;
+      font-weight: 400;
+    }}
     .system-action {{
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -468,6 +479,10 @@ PAGE = """<!doctype html>
       border: 1px solid #e5c6c6;
       border-radius: 6px;
       background: #fff7f7;
+    }}
+    .confirmation-panel.update-confirmation {{
+      border-color: #b9d4d0;
+      background: #f2f8f7;
     }}
     .confirmation-panel[hidden] {{
       display: none;
@@ -663,6 +678,7 @@ PAGE = """<!doctype html>
     var sseStatusReceived = false;
     var sseFallbackTimer = null;
     var fallbackPollTimer = null;
+    var systemUpdatePollTimer = null;
     var tabStorageKey = "chapter-admin-tab";
     var csrfToken = document.querySelector('meta[name="chapter-csrf-token"]').getAttribute("content");
     function tabExists(tabName) {{
@@ -717,6 +733,69 @@ PAGE = """<!doctype html>
       }});
     }});
     activateTab(savedTab(), false);
+    function applySystemUpdateStatus(status) {{
+      var statusText = document.querySelector("[data-system-update-status]");
+      var description = document.querySelector("[data-system-update-description]");
+      var trigger = document.querySelector("[data-system-update-trigger]");
+      var versionText = document.querySelector("[data-system-update-version]");
+      var latestVersion = status.latestVersion ? "v" + status.latestVersion : "";
+      if (status.phase === "installing") {{
+        statusText.textContent = latestVersion ? "Installing " + latestVersion + "..." : "Installing update...";
+        description.textContent = status.message || "Installing the latest stable release. Chapter will restart its services when ready.";
+      }} else if (status.updateAvailable) {{
+        statusText.textContent = latestVersion + " available";
+        description.textContent = "A newer stable version of Chapter is ready to install.";
+      }} else if (status.phase === "failed" || status.phase === "error") {{
+        statusText.textContent = "Update check needs attention";
+        description.textContent = status.message || "Chapter could not check for software updates.";
+      }} else if (status.phase === "completed" && status.message) {{
+        statusText.textContent = "Up to date";
+        description.textContent = status.message;
+      }} else {{
+        statusText.textContent = "Up to date";
+        description.textContent = "This player is running the latest stable version of Chapter.";
+      }}
+      if (versionText) {{
+        versionText.textContent = latestVersion || "the latest release";
+      }}
+      if (trigger) {{
+        trigger.hidden = !status.updateAvailable;
+        trigger.textContent = latestVersion ? "Update to " + latestVersion : "Update";
+        if (trigger.hidden) {{
+          closeConfirmation("update", false);
+        }}
+      }}
+      if (systemUpdatePollTimer) {{
+        window.clearTimeout(systemUpdatePollTimer);
+      }}
+      systemUpdatePollTimer = window.setTimeout(
+        refreshSystemUpdateStatus,
+        status.phase === "installing" ? 3000 : (status.phase === "error" ? 5000 : 900000)
+      );
+    }}
+    function refreshSystemUpdateStatus() {{
+      var request = new XMLHttpRequest();
+      request.open("GET", "/system/update/status", true);
+      request.onreadystatechange = function() {{
+        if (request.readyState !== 4) {{
+          return;
+        }}
+        if (request.status === 200) {{
+          try {{
+            applySystemUpdateStatus(JSON.parse(request.responseText));
+            return;
+          }} catch (error) {{}}
+        }}
+        applySystemUpdateStatus({{
+          phase: "error",
+          latestVersion: "",
+          updateAvailable: false,
+          message: "Chapter could not check for software updates. It will try again automatically."
+        }});
+      }};
+      request.send();
+    }}
+    refreshSystemUpdateStatus();
     function closeConfirmation(panelName, restoreFocus) {{
       var panel = document.querySelector('[data-confirm-panel="' + panelName + '"]');
       var trigger = document.querySelector('[data-confirm-trigger="' + panelName + '"]');
@@ -1120,6 +1199,9 @@ class SetupHandler(BaseHTTPRequestHandler):
         if path == "/player/status":
             self.send_player_status_json()
             return
+        if path == "/system/update/status":
+            self.send_system_update_status_json()
+            return
         if path == "/health":
             self.send_health_page()
             return
@@ -1150,6 +1232,7 @@ class SetupHandler(BaseHTTPRequestHandler):
             "/settings/sleep": self.handle_sleep_setting_post,
             "/podcasts": self.handle_podcasts_post,
             "/system/reboot": self.handle_system_reboot_post,
+            "/system/update": self.handle_system_update_post,
             "/system/reset": self.handle_system_reset_post,
             "/login": self.handle_login_post,
         }
@@ -1339,6 +1422,16 @@ class SetupHandler(BaseHTTPRequestHandler):
         self.send_page(message="Rebooting the Chapter player. It will be available again shortly.")
         schedule_system_reboot()
 
+    def handle_system_update_post(self) -> None:
+        queue_web_player_command("pause")
+        self.send_page(
+            message=(
+                "Software update started. Playback is paused while Chapter installs the latest "
+                "release and restarts its services."
+            )
+        )
+        schedule_software_update()
+
     def handle_system_reset_post(self) -> None:
         restore_device_defaults()
         self.send_page(
@@ -1444,6 +1537,9 @@ class SetupHandler(BaseHTTPRequestHandler):
 
     def send_player_status_json(self) -> None:
         self.send_json(player_status_payload(load_web_player_status()))
+
+    def send_system_update_status_json(self) -> None:
+        self.send_json(update_status_payload())
 
     def send_player_events(self) -> None:
         self.send_response(200)
@@ -1560,6 +1656,22 @@ def schedule_system_reboot(
             runner(["systemctl", "reboot"])
         except (OSError, subprocess.CalledProcessError) as error:
             print(f"System reboot failed: {error}", flush=True)
+
+    timer = threading.Timer(delay_seconds, worker)
+    timer.daemon = True
+    timer.start()
+
+
+def schedule_software_update(
+    delay_seconds: float = SYSTEM_ACTION_DELAY_SECONDS,
+    runner: SystemCommandRunner = run_system_command,
+) -> None:
+    def worker() -> None:
+        try:
+            print("Software update starting", flush=True)
+            runner(["systemctl", "start", "--no-block", UPDATE_SERVICE_NAME])
+        except (OSError, subprocess.CalledProcessError) as error:
+            print(f"Software update failed to start: {error}", flush=True)
 
     timer = threading.Timer(delay_seconds, worker)
     timer.daemon = True
@@ -1779,9 +1891,30 @@ def render_system_card(csrf_token: str = "") -> str:
       <h2 id="system-heading">System</h2>
       <div class="system-version">
         <span class="system-version-label">Software Version</span>
-        <strong>v{version}</strong>
+        <div class="system-version-value">
+          <strong>v{version}</strong>
+          <span class="system-update-status" data-system-update-status aria-live="polite">Checking for updates...</span>
+        </div>
       </div>
       <div class="system-actions">
+        <div class="system-action">
+          <div>
+            <h3>Software Update</h3>
+            <p data-system-update-description>Checking GitHub for the latest stable release.</p>
+          </div>
+          <button type="button" aria-expanded="false" aria-controls="confirm-update" data-confirm-trigger="update" data-system-update-trigger hidden>Update</button>
+          <div class="confirmation-panel update-confirmation" id="confirm-update" data-confirm-panel="update" hidden>
+            <strong>Install <span data-system-update-version>the latest release</span>?</strong>
+            <p>Playback will pause and the player controls may be unavailable for a few minutes. Your Wi-Fi, Audiobookshelf login, podcasts, and settings will be kept.</p>
+            <div class="confirmation-actions">
+              <button class="secondary" type="button" data-confirm-cancel>Cancel</button>
+              <form method="post" action="/system/update">
+                {csrf_input}
+                <button type="submit">Install Update</button>
+              </form>
+            </div>
+          </div>
+        </div>
         <div class="system-action">
           <div>
             <h3>Reboot</h3>

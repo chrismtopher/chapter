@@ -236,7 +236,7 @@ sync_project() {
   if [[ -d "${INSTALL_DIR}/.git" ]]; then
     sudo_run chown -R "$INSTALL_USER:$INSTALL_USER" "$INSTALL_DIR"
     as_install_user git -C "$INSTALL_DIR" fetch --tags origin
-    as_install_user git -C "$INSTALL_DIR" checkout --detach "$RELEASE_REF"
+    as_install_user git -C "$INSTALL_DIR" checkout --force --detach "$RELEASE_REF"
     return
   fi
 
@@ -327,11 +327,13 @@ install_services() {
   render_unit "${deploy_dir}/audiobookshelf-player-oled.service" "${tmpdir}/audiobookshelf-player-oled.service" "$home_dir"
   render_unit "${deploy_dir}/audiobookshelf-player-setup-system.service" "${tmpdir}/audiobookshelf-player-setup.service" "$home_dir"
   render_unit "${deploy_dir}/audiobookshelf-player-bluetooth-unblock.service" "${tmpdir}/audiobookshelf-player-bluetooth-unblock.service" "$home_dir"
+  render_unit "${deploy_dir}/audiobookshelf-player-update.service" "${tmpdir}/audiobookshelf-player-update.service" "$home_dir"
 
   sudo_run install -m 0644 "${tmpdir}/audiobookshelf-player-boot-splash.service" /etc/systemd/system/
   sudo_run install -m 0644 "${tmpdir}/audiobookshelf-player-oled.service" /etc/systemd/system/
   sudo_run install -m 0644 "${tmpdir}/audiobookshelf-player-setup.service" /etc/systemd/system/audiobookshelf-player-setup.service
   sudo_run install -m 0644 "${tmpdir}/audiobookshelf-player-bluetooth-unblock.service" /etc/systemd/system/
+  sudo_run install -m 0644 "${tmpdir}/audiobookshelf-player-update.service" /etc/systemd/system/
   sudo_run install -m 0755 "${deploy_dir}/audiobookshelf-player-port80-proxy" /usr/local/sbin/audiobookshelf-player-port80-proxy
   sudo_run install -m 0644 "${deploy_dir}/audiobookshelf-player-port80-forward.service" /etc/systemd/system/
 
@@ -361,6 +363,7 @@ render_unit() {
     -e "s|/home/chapter|${escaped_home_dir}|g" \
     -e "s|__CHAPTER_INSTALL_DIR__|${escaped_install_dir}|g" \
     -e "s|^User=chapter$|User=${escaped_user}|g" \
+    -e "s|CHAPTER_INSTALL_USER=chapter|CHAPTER_INSTALL_USER=${escaped_user}|g" \
     -e "s|ABS_KIDS_PLAYER_STORAGE_OWNER=chapter|ABS_KIDS_PLAYER_STORAGE_OWNER=${escaped_user}|g" \
     "$source" >"$target"
 }

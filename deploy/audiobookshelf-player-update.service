@@ -1,0 +1,17 @@
+[Unit]
+Description=Chapter Player software updater
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/chapter/audiobookshelf-player
+Environment=HOME=/home/chapter
+Environment=CHAPTER_INSTALL_USER=chapter
+Environment=CHAPTER_INSTALL_DIR=/home/chapter/audiobookshelf-player
+Environment=ABS_KIDS_PLAYER_STATE_DIR=/home/chapter/.local/state/abs-kids-player
+Environment=ABS_KIDS_PLAYER_STORAGE_OWNER=chapter
+ExecStart=/usr/bin/python3 -m abs_kids_player.software_update install
+TimeoutStartSec=45min
+Nice=10
+IOSchedulingClass=idle

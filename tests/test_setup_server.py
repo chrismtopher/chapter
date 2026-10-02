@@ -37,6 +37,7 @@ from abs_kids_player.setup_server import (
     render_status_panel,
     render_wifi_card,
     restore_device_defaults,
+    schedule_software_update,
     schedule_system_reboot,
     schedule_system_reset,
     schedule_wifi_forget,
@@ -567,6 +568,35 @@ class SetupServerTest(unittest.TestCase):
         handler.send_page.assert_called_once()
         schedule_reboot.assert_called_once_with()
 
+    def test_system_update_post_pauses_playback_and_schedules_update(self) -> None:
+        handler = object.__new__(SetupHandler)
+        handler.send_page = Mock()
+
+        with (
+            patch("abs_kids_player.setup_server.queue_web_player_command") as queue_command,
+            patch("abs_kids_player.setup_server.schedule_software_update") as schedule_update,
+        ):
+            handler.handle_system_update_post()
+
+        queue_command.assert_called_once_with("pause")
+        handler.send_page.assert_called_once()
+        schedule_update.assert_called_once_with()
+
+    def test_system_update_status_get_returns_json_payload(self) -> None:
+        handler = object.__new__(SetupHandler)
+        handler.send_json = Mock()
+
+        with patch(
+            "abs_kids_player.setup_server.update_status_payload",
+            return_value={"phase": "current", "updateAvailable": False},
+        ) as status_payload:
+            handler.send_system_update_status_json()
+
+        status_payload.assert_called_once_with()
+        handler.send_json.assert_called_once_with(
+            {"phase": "current", "updateAvailable": False}
+        )
+
     def test_system_reset_post_restores_defaults_and_schedules_setup_mode(self) -> None:
         handler = object.__new__(SetupHandler)
         handler.send_page = Mock()
@@ -693,6 +723,11 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn('<h2 id="system-heading">System</h2>', html)
         self.assertIn("Software Version", html)
         self.assertIn(f"<strong>v{__version__}</strong>", html)
+        self.assertIn("Software Update", html)
+        self.assertIn('data-system-update-status', html)
+        self.assertIn('data-confirm-trigger="update"', html)
+        self.assertIn('data-confirm-panel="update" hidden', html)
+        self.assertIn('action="/system/update"', html)
         self.assertIn("Restore Device to Default Settings", html)
         self.assertIn('data-confirm-trigger="reboot"', html)
         self.assertIn('data-confirm-panel="reboot" hidden', html)
@@ -703,6 +738,8 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn("Are you sure you want to restore the device to default settings?", html)
         self.assertIn('action="/system/reset"', html)
         self.assertNotIn("window.confirm", PAGE)
+        self.assertIn('request.open("GET", "/system/update/status", true)', PAGE)
+        self.assertIn("refreshSystemUpdateStatus()", PAGE)
 
     def test_logo_asset_is_served_as_cached_png(self) -> None:
         handler = object.__new__(SetupHandler)
@@ -793,6 +830,31 @@ class SetupServerTest(unittest.TestCase):
         self.assertTrue(timers[0].daemon)
         timers[0].callback()
         self.assertEqual(commands, [["systemctl", "reboot"]])
+
+    def test_software_update_is_started_after_response_window(self) -> None:
+        timers = []
+        commands = []
+
+        class FakeTimer:
+            def __init__(self, delay: float, callback) -> None:
+                self.delay = delay
+                self.callback = callback
+                self.daemon = False
+                timers.append(self)
+
+            def start(self) -> None:
+                pass
+
+        with patch("abs_kids_player.setup_server.threading.Timer", FakeTimer):
+            schedule_software_update(runner=lambda command: commands.append(command))
+
+        self.assertEqual(timers[0].delay, SYSTEM_ACTION_DELAY_SECONDS)
+        self.assertTrue(timers[0].daemon)
+        timers[0].callback()
+        self.assertEqual(
+            commands,
+            [["systemctl", "start", "--no-block", "audiobookshelf-player-update.service"]],
+        )
 
     def test_system_reset_is_scheduled_after_response_window(self) -> None:
         timers = []

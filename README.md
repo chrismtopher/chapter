@@ -101,6 +101,7 @@ For a package-style quick start card, open the [PDF](docs/first-boot-quick-start
 - Admin web page player controls, including play/pause and volume
 - Configurable library ordering by title or author last name
 - Optional offline spoken navigation for book titles and controls using a tuned eSpeak NG voice
+- System-tab software update checks and one-button stable release installation
 - Resume from Audiobookshelf progress
 - Periodic progress sync back to Audiobookshelf
 - Multi-file audiobook playback
