@@ -10,12 +10,12 @@ The software setup is handled by the installer. This guide covers the parts a ne
 
 - Raspberry Pi Zero 2 WH, or a Raspberry Pi Zero 2 W plus a soldered 40-pin header.
 - 16 GB or larger microSD card. Raspberry Pi OS Lite fits on less, but 16 GB or 32 GB gives you room for updates and logs.
-- Good 5 V power supply. Use at least a 2 A supply; 2.5 A is safer with the OLED and speaker amp.
+- Good regulated 5 V power supply. Raspberry Pi recommends 2 A capacity for the Zero 2 W; 2.5 A provides additional source-side headroom for the OLED and speaker amp. See the USB-C power note below because the specified Adafruit 5993 breakout is the limiting component.
 - 2.08 inch 256x64 SH1122 SPI OLED module.
 - Two KY-040 rotary encoder modules.
 - MAX98357A I2S mono amplifier breakout.
 - 4 ohm speaker.
-- Inline fuse for the USB-C 5 V positive lead.
+- 1.5 A inline fuse for the USB-C 5 V positive lead. The linked holder kit includes a suitable 1.5 A fast-blow 5x20 mm fuse.
 - 3 mm warm-white power indicator LED for the lower-right front-cover hole. The build uses the 5-6 V [Dioramo 13240](https://dioramo.com/products/13240).
 - Cross-connect wires or soldered wiring, plus an enclosure. The build uses [Amazon ASIN B01EV70C78](https://www.amazon.com/dp/B01EV70C78?th=1) for component wiring.
 
@@ -94,6 +94,8 @@ bash install-raspberry-pi.sh
 
 Power the Pi off before wiring. Disconnect power, then wire the parts.
 
+All `GPIO` numbers below use Raspberry Pi BCM numbering. The separate `Physical Pin` column identifies the numbered position on the 40-pin header. Do not confuse the two numbering systems.
+
 ### OLED
 
 | OLED Pin | Raspberry Pi Signal | Physical Pin |
@@ -142,18 +144,28 @@ Power the KY-040 from 3.3 V, not 5 V.
 
 The default software leaves `SD` / `SD_MODE` alone. That lets the breakout's own mode resistor choose the default mono mix.
 
+The MAX98357A speaker output is differential. Connect the speaker only between the amplifier's `+` and `-` speaker terminals; do not connect either speaker terminal to Raspberry Pi ground. Keep the speaker pair short and, if practical, twisted together and routed away from the OLED and encoder wiring.
+
 ### USB-C Power Port And Fuse
 
-If you are using the Adafruit 5993 vertical USB-C breakout as the rear power/service port, put an inline fuse on the positive 5 V leg coming from the USB-C board before it reaches the Raspberry Pi.
+If you are using the Adafruit 5993 vertical USB-C breakout as the rear power port, put a 1.5 A inline fuse on the positive 5 V leg coming from the USB-C board before it reaches the Raspberry Pi.
 
-The build uses [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P) for the fuse.
+On the Adafruit 5993, solder the positive power lead to either pad labeled `VBUS` and the negative power lead to either pad labeled `GND`. The two breakout rows are duplicates, so either matching `VBUS`/`GND` pair may be used. `VBUS` is the raw 5 V supply from the USB-C connector; do not substitute a `CC`, `SBU`, `D+`, or `D-` pad for either power connection. Using red wire for `VBUS` and black wire for `GND` is recommended.
+
+The build uses the holder and fuse assortment in [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P). Install the included **1.5 A fast-blow 5x20 mm fuse** in the holder; do not select one of the higher-current fuses from the assortment.
 
 ```text
-USB-C breakout VBUS -> inline fuse -> Raspberry Pi 5 V pin 2 or 4
-USB-C breakout GND  -> Raspberry Pi GND
+Adafruit 5993 VBUS pad (+5 V) -> 1.5 A fuse -> Raspberry Pi 5 V pin 2 or 4
+Adafruit 5993 GND pad  (-)    -> Raspberry Pi GND
 ```
 
 Any 5 V branch for the amp should be taken from the fused 5 V side. Do not put the fuse in series with `GND`, `D+`, or `D-`.
+
+Leave `D+`, `D-`, `CC`, and `SBU` unwired in the Chapter build. The Adafruit 5993 is used for 5 V power only.
+
+Adafruit documents this breakout's USB-C current arrangement for 5 V at up to 1.5 A, while Raspberry Pi recommends a 2 A-capable supply for a Zero 2 W by itself. The tested Chapter build normally remains within the breakout's limit, but the 5993 is the power-path constraint. If the Pi reports undervoltage, reboots at high volume, or behaves unreliably, stop using it until you replace the input path with a regulated 5 V solution rated for at least 2 A.
+
+Feeding the Pi through a 5 V header pin bypasses the Pi's normal power-input protection. Verify polarity and voltage before connecting it. Never power Chapter through the Adafruit breakout and the Pi's original `PWR IN` micro-USB port at the same time.
 
 ### Power Indicator LED
 

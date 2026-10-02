@@ -2007,7 +2007,7 @@ def render_system_card(csrf_token: str = "") -> str:
           <button class="danger-button" type="button" aria-expanded="false" aria-controls="confirm-restore" data-confirm-trigger="restore">Restore</button>
           <div class="confirmation-panel" id="confirm-restore" data-confirm-panel="restore" hidden>
             <strong>Are you sure you want to restore the device to default settings?</strong>
-            <p>This clears the Audiobookshelf login, listening state, and all saved Wi-Fi networks, and restores podcasts and player settings to defaults. This cannot be undone.</p>
+            <p>This clears the Audiobookshelf login, listening state, saved podcasts, and all saved Wi-Fi networks, and restores player settings to defaults. This cannot be undone.</p>
             <div class="confirmation-actions">
               <button class="secondary" type="button" data-confirm-cancel>Cancel</button>
               <form method="post" action="/system/reset">

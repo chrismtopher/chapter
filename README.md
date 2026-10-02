@@ -8,7 +8,7 @@ Current release: **[v0.3.7](https://github.com/chrismtopher/chapter/releases/tag
 
 Chapter Player for Audiobookshelf is an independent third-party project and is not affiliated with or supported by the Audiobookshelf project.
 
-This prototype is a native Linux appliance app built with Python and GStreamer. It connects to an Audiobookshelf server with a user API token, shows a simple two-line OLED library and playback interface, starts playback sessions, resumes from Audiobookshelf progress, and syncs progress back while listening.
+Chapter is a native Linux appliance app built with Python and GStreamer. It signs in to Audiobookshelf with a dedicated user account, securely stores the server-issued tokens, shows a simple two-line OLED library and playback interface, resumes from Audiobookshelf progress, and syncs progress back while listening.
 
 The target device is a small enclosure with a 2.08 inch SH1122 SPI OLED, two KY-040 rotary encoders, a MAX98357A I2S amp, and an internal speaker.
 
@@ -43,12 +43,12 @@ Recommended build:
 
 - Raspberry Pi Zero 2 WH, or Raspberry Pi Zero 2 W with a soldered 40-pin header
 - 16 GB or larger microSD card
-- 5 V power supply, ideally 2.5 A
+- Regulated 5 V power supply rated for at least 2 A; see the install guide for the Adafruit 5993's 1.5 A power-path limitation
 - 2.08 inch 256x64 SH1122 SPI OLED
 - Two KY-040 rotary encoder modules
 - MAX98357A I2S mono amplifier breakout
 - 4 ohm speaker
-- Inline fuse on the USB-C 5 V positive lead
+- 1.5 A inline fuse on the USB-C 5 V positive lead
 - 3 mm warm-white power indicator LED for the lower-right front-cover hole
 - Cross-connect wires for component wiring
 

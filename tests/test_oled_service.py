@@ -366,9 +366,7 @@ class OledServiceTest(unittest.TestCase):
 
         self.assertIsInstance(result, BookLoadResult)
         self.assertIsNotNone(result.books)
-        self.assertEqual(result.books[0].title, "The Hobbit")
-        self.assertIn("Yoto Daily", [book.title for book in result.books])
-        self.assertIn("Trivia for Kids", [book.title for book in result.books])
+        self.assertEqual([book.title for book in result.books], ["The Hobbit"])
         self.assertIsNone(result.error_frame)
 
     def test_load_library_books_adds_configured_podcast_menu_item(self) -> None:

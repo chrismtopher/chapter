@@ -178,14 +178,14 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(podcast.feed_url, "https://feeds.example.com/show.xml")
         self.assertEqual(podcast.book_id, "podcast:apple:123")
 
-    def test_old_config_gets_default_podcasts(self) -> None:
+    def test_old_config_without_podcast_setting_starts_empty(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "config.json"
             path.write_text('{"server_url": "https://books.example.com"}', encoding="utf-8")
             with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):
-                titles = [podcast.title for podcast in load_config().podcasts]
+                podcasts = load_config().podcasts
 
-        self.assertEqual(titles, ["Yoto Daily", "Trivia for Kids"])
+        self.assertEqual(podcasts, [])
 
     def test_saved_empty_podcast_list_is_preserved(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -31,6 +31,26 @@ PODCAST_REQUEST_HEADERS = {
 }
 
 
+def known_podcast_fallbacks() -> list[PodcastConfig]:
+    """Metadata used only when resolving explicitly added podcast URLs."""
+    return [
+        PodcastConfig(
+            url="https://podcasts.apple.com/us/podcast/yoto-daily/id1635154611",
+            title="Yoto Daily",
+            author="Yoto",
+            feed_url=YOTO_DAILY_FALLBACK_FEED_URL,
+            book_id=YOTO_DAILY_BOOK_ID,
+        ),
+        PodcastConfig(
+            url="https://podcasts.apple.com/us/podcast/trivia-for-kids/id1603986433",
+            title="Trivia for Kids",
+            author="KRCreative",
+            feed_url="https://rss.pdrl.fm/920abb/feeds.libsyn.com/529502/rss/?redirect=false",
+            book_id=TRIVIA_FOR_KIDS_BOOK_ID,
+        ),
+    ]
+
+
 @dataclass(frozen=True)
 class PodcastEpisode:
     title: str
@@ -57,7 +77,7 @@ class PodcastProgressClient:
 
 
 def yoto_daily_book() -> Book:
-    return podcast_book(default_podcasts()[0])
+    return podcast_book(known_podcast_fallbacks()[0])
 
 
 def podcast_books(podcasts: list[PodcastConfig] | tuple[PodcastConfig, ...] | None = None) -> list[Book]:
@@ -88,7 +108,7 @@ def podcast_by_book_id(book_id: str, podcasts: list[PodcastConfig]) -> PodcastCo
 
 
 def latest_yoto_daily_session(resume_time: float = 0.0, start_over: bool = False) -> PlaybackSession:
-    return latest_podcast_session(default_podcasts()[0], resume_time=resume_time, start_over=start_over)
+    return latest_podcast_session(known_podcast_fallbacks()[0], resume_time=resume_time, start_over=start_over)
 
 
 def latest_podcast_session(
@@ -98,7 +118,7 @@ def latest_podcast_session(
 ) -> PlaybackSession:
     podcast = podcast_or_book_id
     if isinstance(podcast, str):
-        resolved = podcast_by_book_id(podcast, default_podcasts())
+        resolved = podcast_by_book_id(podcast, known_podcast_fallbacks())
         if resolved is None:
             raise PodcastError("Podcast is not configured.")
         podcast = resolved
@@ -226,7 +246,7 @@ def apple_podcast_lookup(apple_id: str) -> dict:
 
 
 def default_podcast_for_apple_id(apple_id: str) -> PodcastConfig | None:
-    for podcast in default_podcasts():
+    for podcast in known_podcast_fallbacks():
         if apple_podcast_id(podcast.url) == apple_id:
             return podcast
     return None

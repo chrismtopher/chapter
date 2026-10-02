@@ -36,22 +36,7 @@ class PodcastConfig:
 
 
 def default_podcasts() -> list[PodcastConfig]:
-    return [
-        PodcastConfig(
-            url="https://podcasts.apple.com/us/podcast/yoto-daily/id1635154611",
-            title="Yoto Daily",
-            author="Yoto",
-            feed_url="https://feeds.acast.com/public/shows/62cebd180ce17d0012d3347b",
-            book_id="podcast:yoto-daily",
-        ),
-        PodcastConfig(
-            url="http://podcasts.apple.com/us/podcast/trivia-for-kids/id1603986433",
-            title="Trivia for Kids",
-            author="KRCreative",
-            feed_url="https://rss.pdrl.fm/920abb/feeds.libsyn.com/529502/rss/?redirect=false",
-            book_id="podcast:trivia-for-kids",
-        ),
-    ]
+    return []
 
 
 @dataclass

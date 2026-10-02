@@ -1,6 +1,6 @@
 # Appliance Design
 
-This project is aimed at a small kid-friendly audiobook appliance. The device should work on its own with a built-in speaker, while also supporting Sonos output when a room speaker is available.
+This project is a small kid-friendly audiobook appliance. The released build works on its own with a built-in speaker and can optionally send audio to a paired Bluetooth speaker or headphones. Sonos and AirPlay output are not currently implemented.
 
 ## Recommended Hardware
 
@@ -57,20 +57,6 @@ Good internal dimensions:
 
 Keep the chamber empty except for the speaker and speaker wires. A small amount of acoustic damping material is okay if the chamber sounds boxy, but keep it away from the back of the speaker cone. Seal the speaker gasket and the wire pass-through.
 
-### Sonos Output
-
-Sonos should be treated as an optional network output, not as the system audio device.
-
-The app should:
-
-- Discover Sonos rooms with SoCo.
-- Let a parent choose a default Sonos room.
-- Start Audiobookshelf playback sessions as usual.
-- Send Sonos a playable stream URL.
-- Poll Sonos position and playback state.
-- Sync progress back to Audiobookshelf.
-- Fall back to the internal speaker when Sonos is unavailable.
-
 ## Playback Architecture
 
 ```text
@@ -86,7 +72,7 @@ Kids Player UI
     |
     +-- Local output: GStreamer -> I2S internal speaker
     |
-    +-- Sonos output: SoCo -> Sonos room pulls stream URL
+    +-- Optional output: paired Bluetooth speaker or headphones
 ```
 
 ## Two-Line UI
@@ -104,30 +90,30 @@ Turn the Select knob to move through titles. Click it to open the selected title
 
 ```text
 Top:    audiobook title
-Bottom: > Continue
+Bottom: Home | Continue | Start over
 ```
 
-Show this screen only when the selected book has listening history. `Continue` is the default selection. Turn the Select knob to switch between `Continue` and `Start over`. Click it to choose. If the book has no listening history, selecting it starts from the beginning immediately.
+When the selected book has listening history, `Continue` is the default selection. Turn the Select knob to move between `Home`, `Continue`, and `Start over`, then click to choose. If the book has no listening history, show only `Home` and `Start`.
 
 ### Playing
 
 ```text
-Top:    audiobook title and time
-Bottom: chapter, state, and action row
+Top:    scrolling chapter title with remaining time at the upper-right
+Bottom: Home | Prev | Play/Pause | Next
 ```
 
-The bottom action row is ordered `Home | Prev | Play/Pause | Next`. The Select knob moves left and right through the row, stopping at the edges. Click it to choose the focused action. `Play/Pause` is focused by default when playback starts. `Prev` and `Next` ask for confirmation before seeking.
+The Select knob moves left and right through the action row, stopping at the edges. Click it to choose the focused action. `Play/Pause` is focused by default when playback starts. `Prev` and `Next` ask for confirmation before changing chapters. Returning to `Home` while audio continues playing automatically returns to this playback screen after five seconds without input.
 
-If the top title/time line is too long for the OLED, scroll it horizontally while the book is playing. Keep the bottom action row stable so the selected action does not move under the user's focus.
+Long chapter titles scroll horizontally while the remaining-time display and bottom action row stay fixed.
 
 ### Chapter Confirmation
 
 ```text
-Top:    audiobook title
-Bottom: Go Ch 4? Yes
+Top:    Are you sure you want to listen to the previous/next chapter?
+Bottom: Yes | No
 ```
 
-Turn the Select knob to switch between `Yes` and `No`. Click it to confirm.
+Turn the Select knob to switch between `Yes` and `No`. Click to confirm. The prompt returns to the playback screen after five seconds without input.
 
 ### Volume
 
@@ -143,8 +129,8 @@ The long hold should not also toggle mute.
 When volume is adjusted, replace the current OLED screen with a temporary volume overlay:
 
 ```text
-Top:    Volume
-Bottom: graphical fill bar from 0-100%
+Top:    Volume, or Muted at zero
+Bottom: rounded graphical fill bar
 ```
 
 The overlay should update on every volume step, then return to the previous screen after a short timeout.
@@ -152,7 +138,7 @@ Each additional volume adjustment refreshes the timeout, so the overlay remains 
 
 ## Suggested GPIO Pinout
 
-This pinout avoids the I2S pins commonly used by a MAX98357A-style amplifier.
+This pinout avoids the I2S pins used by the MAX98357A amplifier. `GPIO` values use BCM numbering; `Physical Pin` values identify positions on the 40-pin header.
 
 | Part | Signal | GPIO | Physical Pin |
 | --- | --- | ---: | ---: |
@@ -173,64 +159,53 @@ This pinout avoids the I2S pins commonly used by a MAX98357A-style amplifier.
 | Volume knob KY-040 | CLK | GPIO12 | 32 |
 | Volume knob KY-040 | DT | GPIO16 | 36 |
 | Volume knob KY-040 | SW | GPIO26 | 37 |
+| I2S amp | VIN | 5V | 2 or 4 |
+| I2S amp | GND | GND | Any available GND pin |
 | I2S amp | BCLK | GPIO18 | 12 |
 | I2S amp | LRCLK | GPIO19 | 35 |
 | I2S amp | DIN | GPIO21 | 40 |
+| I2S amp | SD | Not connected | - |
+| Speaker | + / - | I2S amp speaker output | - |
 
 The two KY-040 modules can share 3.3V and ground rails. The code also enables Raspberry Pi internal pull-ups; this is harmless when the KY-040 module already has pull-ups, provided the module is powered from 3.3V.
 
-## USB-C Power And Data
+The MAX98357A speaker output is differential. Connect the speaker only between the amplifier's `+` and `-` speaker terminals; never connect either speaker terminal to Raspberry Pi ground. Leave the amplifier `SD` pad disconnected in the released build.
 
-Use the Adafruit USB-C breakout as the appliance's rear USB-C service/power port. Wire it to the Raspberry Pi Zero 2 WH's 5V/GND and USB data test pads.
+## USB-C Power
 
-| Adafruit USB-C breakout | Raspberry Pi Zero 2 WH | Notes |
+Use the Adafruit 5993 vertical USB-C breakout as the appliance's rear power port. Chapter uses this connector for power only; leave `D+`, `D-`, `CC`, and `SBU` unwired.
+
+For power, solder the positive lead to either Adafruit 5993 pad labeled `VBUS` and the negative lead to either pad labeled `GND`. Its two breakout rows duplicate the same connections, so either matching pair may be used. `VBUS` carries raw USB 5 V. Use red wire for `VBUS` and black wire for `GND`, and do not use the `CC`, `SBU`, `D+`, or `D-` pads as power connections.
+
+| Adafruit 5993 pad | Raspberry Pi Zero 2 WH | Notes |
 | --- | --- | --- |
-| VBUS | 5V header pin 2 or 4, or 5V test pad | Add a 1.5-2A polyfuse if possible. |
-| GND | GND header pin 6, or GND test pad | Tie USB shield to ground through the breakout's normal mounting/ground if provided. |
-| D+ | `USB_DP` test pad | Keep short and route beside D-. |
-| D- | `USB_DM` test pad | Keep short and route beside D+. |
-| CC | no connection | Breakout already has the needed USB-C CC resistors. |
-| SBU | no connection | Not needed for USB 2.0. |
-
-Keep the D+/D- pair short, similar length, and away from the speaker amp wiring. For a printed enclosure, twisted 30 AWG wire-wrap wire or a short USB 2.0 pigtail works better than long loose hookup wires.
+| `VBUS` (+5 V) | 5V header pin 2 or 4, or 5V test pad | Positive power lead; install a 1.5 A fuse in series. |
+| `GND` (-) | GND header pin 6, or GND test pad | Negative power lead; connect to the Pi and amplifier common ground. |
 
 Recommended fuse options:
 
 - Bourns `MF-MSMF150-2`, 1.5A hold / 3A trip, 6V, 1812 SMD
 - Littelfuse `1812L150ZR`, 1.5A hold / 3A trip, 8V, 1812 SMD
-- Prototype inline fuse: [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P)
+- Inline holder: [Amazon ASIN B0813Q4S6P](https://www.amazon.com/dp/B0813Q4S6P), fitted with the included 1.5 A fast-blow 5x20 mm fuse
 
 Wire the fuse in series with USB-C `VBUS`, before the Pi and amplifier:
 
 ```text
-USB-C VBUS -> fuse -> optional power switch -> Pi 5V / amp 5V
+USB-C VBUS -> 1.5 A fuse -> optional power switch -> Pi 5V / amp 5V
 USB-C GND  -> Pi GND / amp GND
 ```
 
 Do not put the fuse in series with `GND`, `D+`, or `D-`.
 
+Adafruit specifies this breakout arrangement for 5 V at up to 1.5 A. Raspberry Pi recommends a 2 A-capable supply for the Zero 2 W, so the tested 5993 is the limiting part of this power path. If Chapter reports undervoltage, reboots at high volume, or behaves unreliably, replace the input path with a regulated 5 V solution rated for at least 2 A.
+
+Powering through a 5 V header pin bypasses the Pi's normal input protection. Verify polarity and voltage before connecting power, and never power the appliance through the 5993 and the Pi's original `PWR IN` micro-USB port simultaneously.
+
 The lower-right hole in the front cover is for a 3 mm warm-white power indicator. Insert the LED from the back and hold it in place with a small dab of hot glue. Splice it as a parallel branch across fused 5 V and ground between the USB-C port and Pi; never put the LED in series with the Pi's supply. The indicator lights immediately when USB power is present, before the OLED service is ready.
 
 The specified [Dioramo 13240](https://dioramo.com/products/13240) is rated for 5-6 V and includes its current-limiting resistor. Connect its white-marked anode wire directly to fused 5 V and its black cathode wire to ground; no additional resistor is required.
 
-This gives the appliance one USB-C port for power and USB 2.0 data/device access. The Pi Zero 2 WH has only one USB OTG data port, so avoid using the original micro-USB data port at the same time. If plugging into a computer for service access, configure the Pi for USB gadget mode, such as USB Ethernet/SSH. If plugging into only a charger, it will simply power the appliance.
-
-## Sonos Stream Strategy
-
-Start with direct Audiobookshelf stream URLs:
-
-```text
-Sonos -> https://audiobookshelf.example.com/s/item/.../track.mp3?token=...
-```
-
-If direct playback is unreliable because of auth, TLS, redirects, or media format behavior, add a local proxy on the Pi:
-
-```text
-Sonos -> http://raspberrypi.local:47831/stream/session-id/track-index
-Pi proxy -> Audiobookshelf with Authorization header
-```
-
-The proxy approach is more work, but it gives the appliance control over authentication, track transitions, and supported stream responses.
+The USB-C connector supplies power only. Continue to use Wi-Fi or the Pi's original USB data port for servicing the appliance.
 
 ## Setup Web Page
 
@@ -246,9 +221,7 @@ On boot, the setup service should run with Wi-Fi fallback enabled:
 python3 -m abs_kids_player.setup_server --ensure-wifi
 ```
 
-This depends on NetworkManager's `nmcli`. In the finished appliance, run it as a system service with permission to manage Wi-Fi.
-
-For the prototype, install the user systemd service in `deploy/audiobookshelf-player-setup.service` and enable lingering so the setup page starts after reboot without an SSH session.
+This depends on NetworkManager's `nmcli`. The automated installer installs the setup page as a root-owned system service so it can manage Wi-Fi and start after reboot without an SSH session.
 
 If no Wi-Fi connection is active, the player starts a temporary setup hotspot:
 
@@ -272,31 +245,22 @@ The setup hotspot should be an open network. To improve captive portal behavior,
 The page logs the player into Audiobookshelf with the selected user's username and password. The password is not stored. The player persists:
 
 - Audiobookshelf server URL
-- Returned user token
-- Optional or resolved library ID
+- Returned access and refresh tokens
+- Audiobookshelf username
+- Resolved library ID
 
 This lets a parent change which Audiobookshelf user the appliance uses without attaching a keyboard and display to the Pi.
 
 To reveal the address without a monitor, hold the Volume knob for 10 seconds while the unit is powered on. The OLED should show the setup URL, such as `http://192.168.1.42`, for 5 seconds and then return to the previous screen.
 
-The main setup page should show whether the setup server is running, whether Wi-Fi is connected and which SSID is active, and whether the saved Audiobookshelf login can successfully reach the server. The `/health` route can show the same status as a convenience.
-
-## Software Backlog
-
-1. Add an output backend interface with `play`, `pause`, `seek`, `stop`, `current_time`, and `sync_progress`.
-2. Move the current GStreamer controller behind a `LocalSpeakerBackend`.
-3. Add a `SonosBackend` using SoCo discovery and `play_uri`.
-4. Wire `ApplianceMenu` to `Sh1122Display` and `RotaryEncoderInputs`.
-5. Validate SH1122 byte order and contrast on the physical OLED.
-6. Add local proxy support if direct Sonos playback cannot handle Audiobookshelf URLs reliably.
-7. Add a parent-only settings path for output mode, Sonos room selection, and re-login.
-8. Add a boot-time health check that verifies internal audio output and Sonos reachability.
+The web interface shows separate status rows for Wi-Fi, Audiobookshelf, Bluetooth, and current playback. Its System tab shows the installed version, available software updates, reboot control, and device-reset control. The `/health` route exposes machine-readable status for diagnostics.
 
 ## Enclosure Notes
 
 - Keep the speaker chamber separate from the Pi where possible.
 - Leave airflow around the Pi and amplifier.
-- Put the OLED and both encoders on the front face.
+- Put the OLED, speaker grille, wordmark, and power indicator on the front cover.
+- Mount the two rotary encoders on the top panel and label them `SELECT` and `VOLUME`.
 - Keep ports reachable for service, but hide them from everyday use.
 - Add a small service hatch for the microSD card if possible.
 
@@ -304,15 +268,15 @@ The main setup page should show whether the setup server is running, whether Wi-
 
 Use the current 3D printed prototype as the visual reference for future renders:
 
-- Matte white PLA body with visible fine print texture.
+- Matte off-white PLA body and front cover with visible fine print texture.
 - Warm tan/brown printed knobs with ridged/scalloped edges and textured top faces.
-- Large Select knob on the lower-right/front, smaller Volume knob above it.
+- Two similarly sized, low-profile knobs on the top panel: `SELECT` on the left and `VOLUME` on the right.
 - OLED window on the upper-left/front with a black recessed display area and rounded rectangular cutout.
+- Lowercase `chapter` wordmark in warm brown on the upper-right/front.
 - Small 3 mm power-indicator opening at the lower-right of the front cover.
 - Speaker grille on the lower-left/front, made from a dense grid of round holes.
 - Matching side ventilation/speaker-style hole grid on the right side panel.
 - Soft rounded outer corners and a gently rounded front perimeter.
-- Top shell has an embossed/recessed `chapter` wordmark.
 - Keep the render grounded as a real printed object, not a perfectly smooth injection-molded product.
 
 ## References
@@ -320,4 +284,5 @@ Use the current 3D printed prototype as the visual reference for future renders:
 - SH1122 OLED module specs: https://www.displaymodule.com/products/2-08-inch-oled-graphic-monochrome-display-256x64-with-spi
 - KY-040 rotary encoder module reference: https://componentindex.net/components/rotary-encoder/
 - KY-040 Raspberry Pi wiring reference: https://sensorkit.joy-it.net/en/sensors/ky-040
-- SoCo API docs: https://docs.python-soco.com/en/v0.28.0/api/soco.core.html
+- Adafruit MAX98357A Raspberry Pi wiring: https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/raspberry-pi-wiring
+- Adafruit 5993 USB-C breakout: https://www.adafruit.com/product/5993
