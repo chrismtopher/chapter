@@ -95,7 +95,10 @@ case "$command_name" in
   sed)
     if [[ "${1:-}" == "-i" ]]; then
       shift
-      exec /usr/bin/sed -i '' "$@"
+      if [[ "$(uname -s)" == "Darwin" ]]; then
+        exec /usr/bin/sed -i '' "$@"
+      fi
+      exec /usr/bin/sed -i "$@"
     fi
     exec /usr/bin/sed "$@"
     ;;

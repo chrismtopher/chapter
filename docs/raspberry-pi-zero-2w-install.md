@@ -53,7 +53,7 @@ ssh chapter@192.168.1.42
 Run this on the Pi:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.0/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.1/scripts/install-raspberry-pi.sh | bash
 ```
 
 The installer handles the software setup:
@@ -85,7 +85,7 @@ sudo reboot
 To inspect the installer before running it:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.0/scripts/install-raspberry-pi.sh
+curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.1/scripts/install-raspberry-pi.sh
 less install-raspberry-pi.sh
 bash install-raspberry-pi.sh
 ```
@@ -202,6 +202,8 @@ The setup page also runs directly on port `47831`:
 http://chapter-player.local:47831
 ```
 
+The setup page intentionally has no password and must remain on a trusted private home network. Do not expose ports `80` or `47831` to the internet or configure router port forwarding for the player. See the [security policy](../SECURITY.md) for the complete network-safety guidance.
+
 If the Pi is not connected to Wi-Fi, the setup service should start an open setup hotspot:
 
 ```text
@@ -237,11 +239,11 @@ If no library is selected, the player uses the user's default audiobook library 
 Run the installer again:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.0/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.1/scripts/install-raspberry-pi.sh | bash
 sudo reboot
 ```
 
-This reinstalls the tested `v0.2.0` release and refreshes the installed service files. To move to a later release, use the versioned command published for that release. For development builds, the installer also accepts `--release-ref REF` or the `CHAPTER_RELEASE_REF` environment variable.
+This reinstalls the tested `v0.2.1` release and refreshes the installed service files. To move to a later release, use the versioned command published for that release. For development builds, the installer also accepts `--release-ref REF` or the `CHAPTER_RELEASE_REF` environment variable.
 
 ## Troubleshooting
 

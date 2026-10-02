@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_URL="${CHAPTER_REPO_URL:-https://github.com/chrismtopher/chapter.git}"
-RELEASE_REF="${CHAPTER_RELEASE_REF:-v0.2.0}"
+RELEASE_REF="${CHAPTER_RELEASE_REF:-v0.2.1}"
 INSTALL_USER="${CHAPTER_INSTALL_USER:-chapter}"
 INSTALL_DIR="${CHAPTER_INSTALL_DIR:-}"
 ASSUME_YES=0

@@ -1,8 +1,10 @@
 # Chapter Player for Audiobookshelf
 
+[![CI](https://github.com/chrismtopher/chapter/actions/workflows/ci.yml/badge.svg)](https://github.com/chrismtopher/chapter/actions/workflows/ci.yml)
+
 A simple Raspberry Pi friendly Chapter player for Audiobookshelf.
 
-Current release: **[v0.2.0](https://github.com/chrismtopher/chapter/tree/v0.2.0)**
+Current release: **[v0.2.1](https://github.com/chrismtopher/chapter/releases/tag/v0.2.1)**
 
 Chapter Player for Audiobookshelf is an independent third-party project and is not affiliated with or supported by the Audiobookshelf project.
 
@@ -17,7 +19,7 @@ Flash Raspberry Pi OS Lite onto a Raspberry Pi Zero 2 W/WH, enable SSH, and conn
 Then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.0/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.1/scripts/install-raspberry-pi.sh | bash
 sudo reboot
 ```
 
@@ -104,6 +106,12 @@ For a package-style quick start card, open the [PDF](docs/first-boot-quick-start
 - Multi-file audiobook playback
 - Continue/start-over prompt when a book has listening history
 - Wi-Fi setup fallback hotspot
+
+## Security
+
+The administration page is intentionally passwordless and is intended only for a trusted private home network. Anyone who can reach it can control or reset the player. Do not expose the player to the internet, configure router port forwarding, or connect it to an untrusted network.
+
+CSRF protection prevents unrelated websites from submitting commands through your browser, but it does not authenticate people already connected to the same network. Use a dedicated, restricted Audiobookshelf account for the player. See the full [security policy](SECURITY.md) for details and vulnerability-reporting instructions.
 
 ## Development
 

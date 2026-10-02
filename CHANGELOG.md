@@ -4,6 +4,12 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.2.1] - 2026-10-02
+
+- Documented the trusted-local-network security model and safe deployment boundaries.
+- Added GitHub Actions coverage for the test suite, syntax checks, and Raspberry Pi OS Lite installer simulation.
+- Made the installer simulation portable across macOS and Linux.
+
 ## [0.2.0] - 2026-10-02
 
 - Added a web setting to order the player library by title or by author last name.

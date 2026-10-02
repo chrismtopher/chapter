@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests and installer simulation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run Python tests
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python3 -m unittest discover -s tests
+
+      - name: Check Python and shell syntax
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: |
+          python3 -m compileall -q abs_kids_player tests
+          bash -n scripts/install-raspberry-pi.sh tests/mock_raspberry_pi_install.sh tests/fixtures/mock-install-command
+
+      - name: Simulate a clean Raspberry Pi OS Lite install
+        run: tests/mock_raspberry_pi_install.sh
