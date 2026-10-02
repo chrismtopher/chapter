@@ -4,6 +4,13 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.8] - 2026-10-02
+
+- Start new and restored players with an empty podcast list so parents explicitly choose every podcast.
+- Preserve resolver compatibility for previously supported podcast links without adding them to the library automatically.
+- Reconcile the wiring and enclosure documentation with the released hardware, including USB-C power, fuse, amplifier, speaker, and control placement guidance.
+- Expand the public-release safety notes and ignore locally generated promotional images.
+
 ## [0.3.7] - 2026-10-02
 
 - Hide the redundant successful-update detail beneath the current software version.
