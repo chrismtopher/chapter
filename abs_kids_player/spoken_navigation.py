@@ -10,9 +10,9 @@ from typing import Callable
 DuckCallback = Callable[[bool], None]
 ProcessFactory = Callable[..., subprocess.Popen]
 
-ESPEAK_VOICE = "en-us+f3"
+ESPEAK_VOICE = "en-us"
 ESPEAK_SPEED_WPM = 150
-ESPEAK_PITCH = 45
+ESPEAK_PITCH = 50
 
 
 @dataclass(frozen=True)
