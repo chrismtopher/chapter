@@ -417,9 +417,9 @@ PAGE = """<!doctype html>
       overflow: hidden;
     }}
     .system-version {{
-      display: flex;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      justify-content: space-between;
       gap: 16px;
       margin-bottom: 16px;
       padding: 14px 16px;
@@ -431,8 +431,10 @@ PAGE = """<!doctype html>
       color: #59616d;
       font-size: 0.9rem;
     }}
-    .system-version-value {{
-      text-align: right;
+    .system-version-number {{
+      display: block;
+      margin-top: 2px;
+      font-size: 1.05rem;
     }}
     .system-update-status {{
       display: block;
@@ -440,6 +442,20 @@ PAGE = """<!doctype html>
       color: #59616d;
       font-size: 0.82rem;
       font-weight: 400;
+    }}
+    .system-update-description {{
+      margin: 5px 0 0;
+      font-size: 0.9rem;
+    }}
+    .system-version > button {{
+      width: auto;
+      min-width: 112px;
+      min-height: 40px;
+      margin: 0;
+      padding: 8px 14px;
+    }}
+    .system-version > .confirmation-panel {{
+      grid-column: 1 / -1;
     }}
     .system-action {{
       display: grid;
@@ -601,6 +617,12 @@ PAGE = """<!doctype html>
         grid-template-columns: 1fr;
       }}
       .system-action > button {{
+        width: 100%;
+      }}
+      .system-version {{
+        grid-template-columns: 1fr;
+      }}
+      .system-version > button {{
         width: 100%;
       }}
       .confirmation-actions {{
@@ -1890,31 +1912,26 @@ def render_system_card(csrf_token: str = "") -> str:
     <section class="card" aria-labelledby="system-heading">
       <h2 id="system-heading">System</h2>
       <div class="system-version">
-        <span class="system-version-label">Software Version</span>
-        <div class="system-version-value">
-          <strong>v{version}</strong>
+        <div>
+          <span class="system-version-label">Software Version</span>
+          <strong class="system-version-number">v{version}</strong>
           <span class="system-update-status" data-system-update-status aria-live="polite">Checking for updates...</span>
+          <p class="system-update-description" data-system-update-description></p>
+        </div>
+        <button type="button" aria-expanded="false" aria-controls="confirm-update" data-confirm-trigger="update" data-system-update-trigger hidden>Update</button>
+        <div class="confirmation-panel update-confirmation" id="confirm-update" data-confirm-panel="update" hidden>
+          <strong>Install <span data-system-update-version>the latest release</span>?</strong>
+          <p>Playback will pause and the player controls may be unavailable for a few minutes. Your Wi-Fi, Audiobookshelf login, podcasts, and settings will be kept.</p>
+          <div class="confirmation-actions">
+            <button class="secondary" type="button" data-confirm-cancel>Cancel</button>
+            <form method="post" action="/system/update">
+              {csrf_input}
+              <button type="submit">Install Update</button>
+            </form>
+          </div>
         </div>
       </div>
       <div class="system-actions">
-        <div class="system-action">
-          <div>
-            <h3>Software Update</h3>
-            <p data-system-update-description>Checking GitHub for the latest stable release.</p>
-          </div>
-          <button type="button" aria-expanded="false" aria-controls="confirm-update" data-confirm-trigger="update" data-system-update-trigger hidden>Update</button>
-          <div class="confirmation-panel update-confirmation" id="confirm-update" data-confirm-panel="update" hidden>
-            <strong>Install <span data-system-update-version>the latest release</span>?</strong>
-            <p>Playback will pause and the player controls may be unavailable for a few minutes. Your Wi-Fi, Audiobookshelf login, podcasts, and settings will be kept.</p>
-            <div class="confirmation-actions">
-              <button class="secondary" type="button" data-confirm-cancel>Cancel</button>
-              <form method="post" action="/system/update">
-                {csrf_input}
-                <button type="submit">Install Update</button>
-              </form>
-            </div>
-          </div>
-        </div>
         <div class="system-action">
           <div>
             <h3>Reboot</h3>

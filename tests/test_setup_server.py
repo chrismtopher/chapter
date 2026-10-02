@@ -722,9 +722,10 @@ class SetupServerTest(unittest.TestCase):
 
         self.assertIn('<h2 id="system-heading">System</h2>', html)
         self.assertIn("Software Version", html)
-        self.assertIn(f"<strong>v{__version__}</strong>", html)
-        self.assertIn("Software Update", html)
+        self.assertIn(f'<strong class="system-version-number">v{__version__}</strong>', html)
+        self.assertNotIn("<h3>Software Update</h3>", html)
         self.assertIn('data-system-update-status', html)
+        self.assertIn('data-system-update-description', html)
         self.assertIn('data-confirm-trigger="update"', html)
         self.assertIn('data-confirm-panel="update" hidden', html)
         self.assertIn('action="/system/update"', html)
