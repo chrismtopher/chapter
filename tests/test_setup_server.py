@@ -574,11 +574,16 @@ class SetupServerTest(unittest.TestCase):
 
         with (
             patch("abs_kids_player.setup_server.queue_web_player_command") as queue_command,
+            patch("abs_kids_player.setup_server.save_update_state") as save_state,
             patch("abs_kids_player.setup_server.schedule_software_update") as schedule_update,
         ):
             handler.handle_system_update_post()
 
         queue_command.assert_called_once_with("pause")
+        state = save_state.call_args.args[0]
+        self.assertEqual(state.phase, "installing")
+        self.assertEqual(state.message, "Preparing the software update.")
+        self.assertGreater(state.updated_at, 0)
         handler.send_page.assert_called_once()
         schedule_update.assert_called_once_with()
 
@@ -741,6 +746,8 @@ class SetupServerTest(unittest.TestCase):
         self.assertNotIn("window.confirm", PAGE)
         self.assertIn('request.open("GET", "/system/update/status", true)', PAGE)
         self.assertIn("refreshSystemUpdateStatus()", PAGE)
+        self.assertIn("softwareUpdateWasInstalling = true", PAGE)
+        self.assertIn('window.location.replace("/")', PAGE)
 
     def test_logo_asset_is_served_as_cached_png(self) -> None:
         handler = object.__new__(SetupHandler)

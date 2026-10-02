@@ -15,6 +15,7 @@ from abs_kids_player.software_update import (
     latest_release_tag,
     load_update_state,
     save_update_state,
+    update_state_is_active,
     update_status_payload,
     version_tuple,
 )
@@ -84,6 +85,16 @@ class SoftwareUpdateTest(unittest.TestCase):
 
             self.assertEqual(loaded, state)
             self.assertEqual((Path(temporary_dir) / "software-update.json").stat().st_mode & 0o777, 0o600)
+
+    def test_only_recent_installing_state_is_active(self) -> None:
+        active = SoftwareUpdateState(phase="installing", updated_at=100.0)
+        stale = SoftwareUpdateState(phase="installing", updated_at=1.0)
+
+        self.assertTrue(update_state_is_active(active, now=101.0))
+        self.assertFalse(update_state_is_active(stale, now=10_000.0))
+        self.assertFalse(
+            update_state_is_active(SoftwareUpdateState(phase="completed", updated_at=100.0), now=101.0)
+        )
 
     def test_status_payload_preserves_failed_update_message(self) -> None:
         with (

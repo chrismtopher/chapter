@@ -106,11 +106,7 @@ def check_for_update(
 
 def update_status_payload() -> dict:
     state = load_update_state()
-    update_is_active = (
-        state.phase == "installing"
-        and state.updated_at > 0
-        and time.time() - state.updated_at < STALE_UPDATE_SECONDS
-    )
+    update_is_active = update_state_is_active(state)
     if update_is_active:
         return {
             "currentVersion": __version__,
@@ -142,6 +138,18 @@ def update_status_payload() -> dict:
         "phase": phase,
         "message": message,
     }
+
+
+def update_state_is_active(
+    state: SoftwareUpdateState,
+    now: float | None = None,
+) -> bool:
+    current_time = time.time() if now is None else now
+    return (
+        state.phase == "installing"
+        and state.updated_at > 0
+        and current_time - state.updated_at < STALE_UPDATE_SECONDS
+    )
 
 
 def update_state_path() -> Path:

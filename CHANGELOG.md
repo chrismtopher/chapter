@@ -4,6 +4,11 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.2] - 2026-10-02
+
+- Show an `UPDATING / DO NOT POWER OFF` warning on the OLED for the full software update.
+- Refresh the administration page automatically when an update completes.
+
 ## [0.3.1] - 2026-10-02
 
 - Consolidated update availability and confirmation controls into the Software Version section.

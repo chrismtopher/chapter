@@ -24,6 +24,7 @@ from abs_kids_player.oled_service import (
     BookLoadResult,
     DEFAULT_SCREEN_SAVER_IDLE_SECONDS,
     DEFAULT_UNMUTE_VOLUME_PERCENT,
+    SOFTWARE_UPDATE_FRAME,
     ListeningSleepTimer,
     bluetooth_pairing_frame,
     bluetooth_result_frame,
@@ -31,6 +32,7 @@ from abs_kids_player.oled_service import (
     book_load_result,
     clock_screen_saver_text,
     consume_screen_saver_wake_input,
+    drain_input_events,
     frame_with_mute_indicator,
     frame_with_status_indicators,
     frame_for_boot_state,
@@ -43,7 +45,7 @@ from abs_kids_player.oled_service import (
     input_activity_seen,
     load_library_books,
     load_home_frame,
-    pause_and_publish_for_sleep,
+    pause_and_publish_playback,
     poll_playback_safely,
     refresh_home_cache,
     screen_saver_frame,
@@ -231,6 +233,19 @@ class OledServiceTest(unittest.TestCase):
 
         self.assertIsInstance(frame, SplashFrame)
         self.assertEqual(frame.text, "chapter")
+
+    def test_software_update_frame_warns_against_powering_off(self) -> None:
+        self.assertEqual(SOFTWARE_UPDATE_FRAME.top, "UPDATING")
+        self.assertEqual(SOFTWARE_UPDATE_FRAME.bottom, "DO NOT POWER OFF")
+
+    def test_update_mode_discards_rotary_events(self) -> None:
+        events: queue.SimpleQueue[InputEvent] = queue.SimpleQueue()
+        events.put(InputEvent("nav", 1))
+        events.put(InputEvent("volume_click"))
+
+        drain_input_events(events)
+
+        self.assertTrue(events.empty())
 
     def test_signal_boot_splash_handoff_writes_marker(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -456,7 +471,7 @@ class OledServiceTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             status_path = str(Path(directory) / "status.json")
             with patch.dict("os.environ", {"ABS_KIDS_PLAYER_WEB_STATUS_PATH": status_path}):
-                pause_and_publish_for_sleep(playback, menu, volume_percent=55, muted=False)
+                pause_and_publish_playback(playback, menu, volume_percent=55, muted=False)
                 status = load_web_player_status()
 
         self.assertEqual(playback.pause_calls, 1)

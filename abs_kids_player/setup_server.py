@@ -39,7 +39,12 @@ from .library_cache import clear_cached_books
 from .player_state import clear_last_playback
 from .player_control import WebPlayerStatus, load_web_player_status, queue_web_player_command
 from .podcast import PodcastError, resolve_podcast_config
-from .software_update import UPDATE_SERVICE_NAME, update_status_payload
+from .software_update import (
+    UPDATE_SERVICE_NAME,
+    SoftwareUpdateState,
+    save_update_state,
+    update_status_payload,
+)
 from .wifi import (
     SETUP_HOTSPOT_SSID,
     SETUP_HOTSPOT_URL,
@@ -701,6 +706,7 @@ PAGE = """<!doctype html>
     var sseFallbackTimer = null;
     var fallbackPollTimer = null;
     var systemUpdatePollTimer = null;
+    var softwareUpdateWasInstalling = false;
     var tabStorageKey = "chapter-admin-tab";
     var csrfToken = document.querySelector('meta[name="chapter-csrf-token"]').getAttribute("content");
     function tabExists(tabName) {{
@@ -762,6 +768,7 @@ PAGE = """<!doctype html>
       var versionText = document.querySelector("[data-system-update-version]");
       var latestVersion = status.latestVersion ? "v" + status.latestVersion : "";
       if (status.phase === "installing") {{
+        softwareUpdateWasInstalling = true;
         statusText.textContent = latestVersion ? "Installing " + latestVersion + "..." : "Installing update...";
         description.textContent = status.message || "Installing the latest stable release. Chapter will restart its services when ready.";
       }} else if (status.updateAvailable) {{
@@ -776,6 +783,14 @@ PAGE = """<!doctype html>
       }} else {{
         statusText.textContent = "Up to date";
         description.textContent = "This player is running the latest stable version of Chapter.";
+      }}
+      if (
+        softwareUpdateWasInstalling &&
+        (status.phase === "completed" || (status.phase === "current" && !status.updateAvailable))
+      ) {{
+        softwareUpdateWasInstalling = false;
+        window.location.replace("/");
+        return;
       }}
       if (versionText) {{
         versionText.textContent = latestVersion || "the latest release";
@@ -1446,6 +1461,13 @@ class SetupHandler(BaseHTTPRequestHandler):
 
     def handle_system_update_post(self) -> None:
         queue_web_player_command("pause")
+        save_update_state(
+            SoftwareUpdateState(
+                phase="installing",
+                message="Preparing the software update.",
+                updated_at=time.time(),
+            )
+        )
         self.send_page(
             message=(
                 "Software update started. Playback is paused while Chapter installs the latest "
@@ -1694,6 +1716,13 @@ def schedule_software_update(
             runner(["systemctl", "start", "--no-block", UPDATE_SERVICE_NAME])
         except (OSError, subprocess.CalledProcessError) as error:
             print(f"Software update failed to start: {error}", flush=True)
+            save_update_state(
+                SoftwareUpdateState(
+                    phase="failed",
+                    message="Software update could not start. Please try again.",
+                    updated_at=time.time(),
+                )
+            )
 
     timer = threading.Timer(delay_seconds, worker)
     timer.daemon = True

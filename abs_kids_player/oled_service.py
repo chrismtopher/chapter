@@ -75,6 +75,7 @@ from .rotary_ui import (
     title_sort_text,
 )
 from .spoken_navigation import SpokenNavigationFeedback
+from .software_update import load_update_state, update_state_is_active
 from .wifi import SETUP_HOTSPOT_SSID, SETUP_HOTSPOT_URL, WifiStatus, wifi_status
 
 
@@ -98,11 +99,13 @@ DEFAULT_CONTROL_CLICK_MIN_INTERVAL_SECONDS = 0.045
 DEFAULT_SLEEP_CONFIRM_SECONDS = 30
 DEFAULT_ACTIVE_BRIGHTNESS_PERCENT = 100
 DEFAULT_RUNTIME_CONFIG_REFRESH_SECONDS = 1.0
+DEFAULT_SOFTWARE_UPDATE_REFRESH_SECONDS = 0.5
 DEFAULT_WAKE_INPUT_QUIET_SECONDS = 0.35
 VOLUME_STEP_PERCENT = 5
 BOOK_LOADING_FRAME = TwoLineFrame("Grabbing that book", "from the shelf...")
 BLUETOOTH_PAIRING_FRAME = TwoLineFrame("Pair Bluetooth", "Put device in pair mode")
 BLUETOOTH_POWER_FRAME = TwoLineFrame("Bluetooth", "Updating...")
+SOFTWARE_UPDATE_FRAME = TwoLineFrame("UPDATING", "DO NOT POWER OFF")
 
 
 class PlaybackCommandResult:
@@ -589,6 +592,14 @@ def consume_screen_saver_wake_input(
     return screen_saver_visible and consumed, quiet_until
 
 
+def drain_input_events(events: queue.SimpleQueue[InputEvent]) -> None:
+    while True:
+        try:
+            events.get_nowait()
+        except queue.Empty:
+            return
+
+
 def effective_muted(percent: int, muted: bool) -> bool:
     return muted or percent <= 0
 
@@ -717,7 +728,7 @@ def publish_web_player_status(
     save_web_player_status(web_status_for_playback(playback, volume_percent, muted))
 
 
-def pause_and_publish_for_sleep(
+def pause_and_publish_playback(
     playback: GStreamerPlayback,
     menu: ApplianceMenu,
     volume_percent: int,
@@ -895,6 +906,9 @@ def run_oled_service(
         last_input_at = time.monotonic()
         last_loop_at = last_input_at
         last_runtime_config_load = last_input_at
+        last_software_update_load = 0.0
+        software_update_active = False
+        software_update_screen_visible = False
         sleep_timer = ListeningSleepTimer()
         display_brightness_percent = DEFAULT_ACTIVE_BRIGHTNESS_PERCENT
         screen_saver_visible = False
@@ -909,6 +923,30 @@ def run_oled_service(
                 full_loop_elapsed = max(0.0, now - last_loop_at)
                 loop_elapsed = min(full_loop_elapsed, 1.0)
                 last_loop_at = now
+                if now - last_software_update_load >= DEFAULT_SOFTWARE_UPDATE_REFRESH_SECONDS:
+                    software_update_active = update_state_is_active(load_update_state())
+                    last_software_update_load = now
+                if software_update_active:
+                    drain_input_events(events)
+                    spoken_navigation.cancel()
+                    screen_saver_visible = False
+                    display_brightness_percent = update_display_brightness(
+                        display,
+                        DEFAULT_ACTIVE_BRIGHTNESS_PERCENT,
+                        display_brightness_percent,
+                    )
+                    display.show(SOFTWARE_UPDATE_FRAME)
+                    if not software_update_screen_visible:
+                        software_update_screen_visible = True
+                        pause_and_publish_playback(
+                            playback,
+                            menu,
+                            software_volume,
+                            software_muted,
+                        )
+                    sleep_until_shutdown(shutdown, refresh_seconds)
+                    continue
+                software_update_screen_visible = False
                 if now - last_runtime_config_load >= DEFAULT_RUNTIME_CONFIG_REFRESH_SECONDS:
                     runtime_config = load_config()
                     last_runtime_config_load = now
@@ -1219,7 +1257,7 @@ def run_oled_service(
                     is_playing=playback.is_playing,
                 )
                 if sleep_event == "prompt":
-                    pause_and_publish_for_sleep(
+                    pause_and_publish_playback(
                         playback,
                         menu,
                         software_volume,
@@ -1231,7 +1269,7 @@ def run_oled_service(
                     last_input_at = now
                     menu_changed = True
                 elif sleep_event == "sleep":
-                    pause_and_publish_for_sleep(
+                    pause_and_publish_playback(
                         playback,
                         menu,
                         software_volume,
