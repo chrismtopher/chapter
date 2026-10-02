@@ -747,6 +747,8 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn('request.open("GET", "/system/update/status", true)', PAGE)
         self.assertIn("refreshSystemUpdateStatus()", PAGE)
         self.assertIn("softwareUpdateWasInstalling = true", PAGE)
+        self.assertIn('statusText.textContent = "Finishing update..."', PAGE)
+        self.assertIn("softwareUpdateWasInstalling ? 2000", PAGE)
         self.assertIn('window.location.replace("/")', PAGE)
 
     def test_logo_asset_is_served_as_cached_png(self) -> None:

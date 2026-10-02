@@ -770,20 +770,6 @@ PAGE = """<!doctype html>
       var latestVersion = status.latestVersion ? "v" + status.latestVersion : "";
       if (status.phase === "installing") {{
         softwareUpdateWasInstalling = true;
-        statusText.textContent = latestVersion ? "Installing " + latestVersion + "..." : "Installing update...";
-        description.textContent = status.message || "Installing the latest stable release. Chapter will restart its services when ready.";
-      }} else if (status.updateAvailable) {{
-        statusText.textContent = latestVersion + " available";
-        description.textContent = "A newer stable version of Chapter is ready to install.";
-      }} else if (status.phase === "failed" || status.phase === "error") {{
-        statusText.textContent = "Update check needs attention";
-        description.textContent = status.message || "Chapter could not check for software updates.";
-      }} else if (status.phase === "completed" && status.message) {{
-        statusText.textContent = "Up to date";
-        description.textContent = status.message;
-      }} else {{
-        statusText.textContent = "Up to date";
-        description.textContent = "This player is running the latest stable version of Chapter.";
       }}
       if (
         softwareUpdateWasInstalling &&
@@ -793,11 +779,39 @@ PAGE = """<!doctype html>
         window.location.replace("/");
         return;
       }}
+      var updateServiceIsRestarting = (
+        softwareUpdateWasInstalling && status.phase === "available" && status.updateAvailable
+      );
+      if (status.phase === "installing") {{
+        statusText.textContent = latestVersion ? "Installing " + latestVersion + "..." : "Installing update...";
+        description.textContent = status.message || "Installing the latest stable release. Chapter will restart its services when ready.";
+      }} else if (updateServiceIsRestarting) {{
+        statusText.textContent = "Finishing update...";
+        description.textContent = "Chapter is restarting with the newly installed version.";
+      }} else if (status.phase === "failed") {{
+        softwareUpdateWasInstalling = false;
+        statusText.textContent = "Update failed";
+        description.textContent = status.message || "The software update did not finish.";
+      }} else if (status.phase === "error") {{
+        statusText.textContent = softwareUpdateWasInstalling ? "Finishing update..." : "Update check needs attention";
+        description.textContent = softwareUpdateWasInstalling
+          ? "Waiting for the Chapter web service to restart."
+          : (status.message || "Chapter could not check for software updates.");
+      }} else if (status.updateAvailable) {{
+        statusText.textContent = latestVersion + " available";
+        description.textContent = "A newer stable version of Chapter is ready to install.";
+      }} else if (status.phase === "completed" && status.message) {{
+        statusText.textContent = "Up to date";
+        description.textContent = status.message;
+      }} else {{
+        statusText.textContent = "Up to date";
+        description.textContent = "This player is running the latest stable version of Chapter.";
+      }}
       if (versionText) {{
         versionText.textContent = latestVersion || "the latest release";
       }}
       if (trigger) {{
-        trigger.hidden = !status.updateAvailable;
+        trigger.hidden = softwareUpdateWasInstalling || !status.updateAvailable;
         trigger.textContent = latestVersion ? "Update to " + latestVersion : "Update";
         if (trigger.hidden) {{
           closeConfirmation("update", false);
@@ -808,7 +822,7 @@ PAGE = """<!doctype html>
       }}
       systemUpdatePollTimer = window.setTimeout(
         refreshSystemUpdateStatus,
-        status.phase === "installing" ? 3000 : (status.phase === "error" ? 5000 : 900000)
+        softwareUpdateWasInstalling ? 2000 : (status.phase === "error" ? 5000 : 900000)
       );
     }}
     function refreshSystemUpdateStatus() {{

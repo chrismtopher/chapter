@@ -328,6 +328,7 @@ def install_latest_release(
                 timeout=UPDATE_INSTALL_TIMEOUT_SECONDS,
             )
 
+        runner(["systemctl", "restart", "audiobookshelf-player-setup.service"], timeout=30)
         save_update_state(
             SoftwareUpdateState(
                 phase="completed",
@@ -337,7 +338,6 @@ def install_latest_release(
             )
         )
         runner(["systemctl", "restart", "audiobookshelf-player-oled.service"], timeout=30)
-        runner(["systemctl", "restart", "audiobookshelf-player-setup.service"], timeout=30)
         return release.latest_version
     except (OSError, KeyError, RuntimeError, subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
         save_update_state(

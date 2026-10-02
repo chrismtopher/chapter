@@ -4,6 +4,11 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.5] - 2026-10-02
+
+- Keep the administration page on rapid update polling while services restart.
+- Reload the administration page automatically after the new web service reports completion.
+
 ## [0.3.4] - 2026-10-02
 
 - Pause playback and show the OLED update warning before installation work begins.

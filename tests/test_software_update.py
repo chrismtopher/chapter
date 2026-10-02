@@ -253,6 +253,10 @@ class SoftwareUpdateTest(unittest.TestCase):
             ["systemctl", "restart", "audiobookshelf-player-setup.service"],
             commands,
         )
+        self.assertLess(
+            commands.index(["systemctl", "restart", "audiobookshelf-player-setup.service"]),
+            commands.index(["systemctl", "restart", "audiobookshelf-player-oled.service"]),
+        )
 
 
 if __name__ == "__main__":
