@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import hmac
 import html
 import json
+import secrets
 import subprocess
 import threading
 import time
@@ -57,6 +59,8 @@ SYSTEM_ACTION_DELAY_SECONDS = 3.0
 PLAYER_EVENT_POLL_SECONDS = 0.25
 PLAYER_EVENT_TIME_SECONDS = 1.0
 PLAYER_EVENT_HEARTBEAT_SECONDS = 10.0
+MAX_POST_BODY_BYTES = 64 * 1024
+CSRF_FIELD_NAME = "csrf_token"
 LOGO_PATH = Path(__file__).resolve().parent / "assets" / "chapter-logo.png"
 
 
@@ -65,6 +69,7 @@ PAGE = """<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="chapter-csrf-token" content="{csrf_token}">
   <title>Chapter Player for Audiobookshelf</title>
   <link rel="icon" type="image/png" href="/assets/chapter-logo.png">
   <style>
@@ -624,6 +629,7 @@ PAGE = """<!doctype html>
         <h2 id="audiobookshelf-heading">Audiobookshelf</h2>
         <p class="hint">The password is sent only to your Audiobookshelf server. This player stores the returned user token.</p>
         <form method="post" action="/login">
+          {csrf_input}
           <label for="server_url">Audiobookshelf server URL</label>
           <input id="server_url" name="server_url" value="{server_url}" placeholder="https://books.example.com" required>
 
@@ -658,6 +664,7 @@ PAGE = """<!doctype html>
     var sseFallbackTimer = null;
     var fallbackPollTimer = null;
     var tabStorageKey = "chapter-admin-tab";
+    var csrfToken = document.querySelector('meta[name="chapter-csrf-token"]').getAttribute("content");
     function tabExists(tabName) {{
       return Boolean(document.querySelector('[data-tab-target="' + tabName + '"]'));
     }}
@@ -760,6 +767,7 @@ PAGE = """<!doctype html>
     }}
     function postPlayer(fields, callback) {{
       var request = new XMLHttpRequest();
+      fields["{csrf_field_name}"] = csrfToken;
       request.open("POST", "/player", true);
       request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
       request.setRequestHeader("X-Requested-With", "fetch");
@@ -1131,48 +1139,65 @@ class SetupHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
-        if path == "/wifi":
-            self.handle_wifi_post()
-            return
-        if path == "/wifi/forget":
-            self.handle_forget_wifi_post()
-            return
-        if path == "/player":
-            self.handle_player_post()
-            return
-        if path == "/settings/click":
-            self.handle_click_setting_post()
-            return
-        if path == "/settings/spoken-navigation":
-            self.handle_spoken_navigation_setting_post()
-            return
-        if path == "/settings/library-order":
-            self.handle_library_sort_setting_post()
-            return
-        if path == "/settings/screensaver":
-            self.handle_screen_saver_setting_post()
-            return
-        if path == "/settings/sleep":
-            self.handle_sleep_setting_post()
-            return
-        if path == "/podcasts":
-            self.handle_podcasts_post()
-            return
-        if path == "/system/reboot":
-            self.handle_system_reboot_post()
-            return
-        if path == "/system/reset":
-            self.handle_system_reset_post()
-            return
-        if path != "/login":
+        handlers = {
+            "/wifi": self.handle_wifi_post,
+            "/wifi/forget": self.handle_forget_wifi_post,
+            "/player": self.handle_player_post,
+            "/settings/click": self.handle_click_setting_post,
+            "/settings/spoken-navigation": self.handle_spoken_navigation_setting_post,
+            "/settings/library-order": self.handle_library_sort_setting_post,
+            "/settings/screensaver": self.handle_screen_saver_setting_post,
+            "/settings/sleep": self.handle_sleep_setting_post,
+            "/podcasts": self.handle_podcasts_post,
+            "/system/reboot": self.handle_system_reboot_post,
+            "/system/reset": self.handle_system_reset_post,
+            "/login": self.handle_login_post,
+        }
+        handler = handlers.get(path)
+        if handler is None:
             self.send_error(404)
             return
 
-        self.handle_login_post()
+        fields = self.post_fields()
+        if fields is None:
+            return
+        submitted_token = one(fields, CSRF_FIELD_NAME)
+        if not submitted_token or not hmac.compare_digest(submitted_token, self.csrf_token()):
+            self.send_csrf_error()
+            return
+        handler()
+
+    def csrf_token(self) -> str:
+        return getattr(getattr(self, "server", None), "csrf_token", "")
+
+    def post_fields(self) -> dict[str, list[str]] | None:
+        cached = getattr(self, "_post_fields", None)
+        if cached is not None:
+            return cached
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except (TypeError, ValueError):
+            self.send_request_error(400, "Invalid request length.")
+            return None
+        if length < 0:
+            self.send_request_error(400, "Invalid request length.")
+            return None
+        if length > MAX_POST_BODY_BYTES:
+            self.send_request_error(413, "Request is too large.")
+            return None
+        try:
+            body = self.rfile.read(length).decode("utf-8")
+        except UnicodeDecodeError:
+            self.send_request_error(400, "Request must use UTF-8 text.")
+            return None
+        fields = parse_qs(body, keep_blank_values=True)
+        self._post_fields = fields
+        return fields
 
     def handle_wifi_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         ssid = one(fields, "wifi_ssid")
         password = one(fields, "wifi_password")
 
@@ -1198,8 +1223,9 @@ class SetupHandler(BaseHTTPRequestHandler):
         )
 
     def handle_login_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         server_url = one(fields, "server_url")
         username = one(fields, "username")
         password = one(fields, "password")
@@ -1222,8 +1248,9 @@ class SetupHandler(BaseHTTPRequestHandler):
         )
 
     def handle_player_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         action = one(fields, "action")
 
         if action in {"play", "pause"}:
@@ -1244,28 +1271,32 @@ class SetupHandler(BaseHTTPRequestHandler):
         self.send_page(message="Unknown player command.", is_error=True)
 
     def handle_click_setting_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         enabled = one(fields, "enabled") == "1"
         save_click_setting(enabled)
         self.redirect_home()
 
     def handle_spoken_navigation_setting_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         enabled = one(fields, "enabled") == "1"
         save_spoken_navigation_setting(enabled)
         self.redirect_home()
 
     def handle_library_sort_setting_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         save_library_sort_setting(one(fields, "library_sort_mode"))
         self.redirect_home()
 
     def handle_screen_saver_setting_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         mode = valid_screen_saver_mode(one(fields, "screen_saver_mode"))
         if "screen_saver_dim_percent" in fields:
             save_screen_saver_setting(
@@ -1277,8 +1308,9 @@ class SetupHandler(BaseHTTPRequestHandler):
         self.redirect_home()
 
     def handle_sleep_setting_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         if "enabled" in fields:
             save_sleep_timer_setting(enabled=one(fields, "enabled") == "1")
             self.redirect_home()
@@ -1292,8 +1324,9 @@ class SetupHandler(BaseHTTPRequestHandler):
         self.redirect_home()
 
     def handle_podcasts_post(self) -> None:
-        length = int(self.headers.get("Content-Length", "0"))
-        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        fields = self.post_fields()
+        if fields is None:
+            return
         urls = fields.get("podcast_url", [])
         try:
             save_podcast_settings(urls)
@@ -1330,22 +1363,48 @@ class SetupHandler(BaseHTTPRequestHandler):
             message_html = f'<div class="{css_class}">{message}</div>'
 
         wifi = wifi_status()
+        csrf_token = self.csrf_token()
         body = PAGE.format(
             status_panel=render_status_panel(
                 wifi,
                 audiobookshelf_status(),
                 load_web_player_status(),
                 bluetooth_status(),
+                csrf_token,
             ),
-            settings_card=render_settings_card(config),
-            podcasts_card=render_podcasts_card(config),
-            wifi_card=render_wifi_card(wifi),
-            system_card=render_system_card(),
+            settings_card=render_settings_card(config, csrf_token),
+            podcasts_card=render_podcasts_card(config, csrf_token),
+            wifi_card=render_wifi_card(wifi, csrf_token),
+            system_card=render_system_card(csrf_token),
             message=message_html,
             server_url=html.escape(server_url if server_url is not None else config.server_url),
             library_id=html.escape(library_id if library_id is not None else config.library_id),
+            csrf_token=html.escape(csrf_token, quote=True),
+            csrf_input=render_csrf_input(csrf_token),
+            csrf_field_name=CSRF_FIELD_NAME,
         ).encode("utf-8")
         self.send_response(200)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_csrf_error(self) -> None:
+        self.send_request_error(
+            403,
+            "This page has expired. Reload the Chapter setup page, then try again.",
+        )
+
+    def send_request_error(self, status: int, message: str) -> None:
+        body = (
+            "<!doctype html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+            "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+            "<title>Chapter Player</title></head><body><main>"
+            f"<h1>Chapter Player</h1><p>{html.escape(message)}</p>"
+            '<p><a href="/">Reload setup page</a></p></main></body></html>'
+        ).encode("utf-8")
+        self.send_response(status)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(body)))
@@ -1447,6 +1506,13 @@ class SetupHandler(BaseHTTPRequestHandler):
 
 def one(fields: dict[str, list[str]], name: str) -> str:
     return fields.get(name, [""])[0].strip()
+
+
+def render_csrf_input(csrf_token: str) -> str:
+    return (
+        f'<input type="hidden" name="{CSRF_FIELD_NAME}" '
+        f'value="{html.escape(csrf_token, quote=True)}">'
+    )
 
 
 def schedule_wifi_connect(ssid: str, password: str) -> None:
@@ -1669,6 +1735,7 @@ def render_status_panel(
     abs_status: tuple[bool, str],
     player_status: WebPlayerStatus | None = None,
     bt_status: tuple[bool, str] = (False, "Not connected"),
+    csrf_token: str = "",
 ) -> str:
     abs_ok, abs_message = abs_status
     bt_ok, bt_message = bt_status
@@ -1702,11 +1769,11 @@ def render_status_panel(
         abs_value=render_audiobookshelf_status_value(abs_message),
         bt_class="ok" if bt_ok else "bad",
         bt_value=render_bluetooth_status_value(bt_message),
-        player_value=render_player_status_value(player_status),
+        player_value=render_player_status_value(player_status, csrf_token),
     )
 
 
-def render_system_card() -> str:
+def render_system_card(csrf_token: str = "") -> str:
     return """
     <section class="card" aria-labelledby="system-heading">
       <h2 id="system-heading">System</h2>
@@ -1727,6 +1794,7 @@ def render_system_card() -> str:
             <div class="confirmation-actions">
               <button class="secondary" type="button" data-confirm-cancel>Cancel</button>
               <form method="post" action="/system/reboot">
+                {csrf_input}
                 <button type="submit">Reboot</button>
               </form>
             </div>
@@ -1744,6 +1812,7 @@ def render_system_card() -> str:
             <div class="confirmation-actions">
               <button class="secondary" type="button" data-confirm-cancel>Cancel</button>
               <form method="post" action="/system/reset">
+                {csrf_input}
                 <button class="danger-button" type="submit">Restore Device</button>
               </form>
             </div>
@@ -1751,10 +1820,11 @@ def render_system_card() -> str:
         </div>
       </div>
     </section>
-    """.format(version=html.escape(__version__))
+    """.format(version=html.escape(__version__), csrf_input=render_csrf_input(csrf_token))
 
 
-def render_settings_card(config: AppConfig) -> str:
+def render_settings_card(config: AppConfig, csrf_token: str = "") -> str:
+    csrf_input = render_csrf_input(csrf_token)
     enabled = config.control_click_enabled
     next_value = "0" if enabled else "1"
     toggle_class = " is-on" if enabled else ""
@@ -1776,6 +1846,7 @@ def render_settings_card(config: AppConfig) -> str:
     if sleep_enabled:
         sleep_duration_controls = """
           <form class="sleep-timer-duration-form" method="post" action="/settings/sleep">
+            {csrf_input}
             <span>Ask after</span>
             <input class="settings-number" name="minutes" type="number" min="{sleep_min}" max="{sleep_max}" step="1" value="{sleep_minutes}" aria-label="Sleep timer minutes">
             <span>minutes of listening</span>
@@ -1785,6 +1856,7 @@ def render_settings_card(config: AppConfig) -> str:
             sleep_minutes=config.sleep_timer_minutes,
             sleep_min=MIN_SLEEP_TIMER_MINUTES,
             sleep_max=MAX_SLEEP_TIMER_MINUTES,
+            csrf_input=csrf_input,
         )
     return """
     <section class="card" aria-labelledby="settings-heading">
@@ -1795,6 +1867,7 @@ def render_settings_card(config: AppConfig) -> str:
             <div class="setting-name">Control knob click sound</div>
           </div>
           <form class="toggle-form" method="post" action="/settings/click">
+            {csrf_input}
             <input type="hidden" name="enabled" value="{next_value}">
             <button class="toggle-button{toggle_class}" type="submit" aria-pressed="{aria_pressed}">
               <span class="sr-only">{button_label}</span>
@@ -1806,6 +1879,7 @@ def render_settings_card(config: AppConfig) -> str:
             <div class="setting-name">Spoken navigation</div>
           </div>
           <form class="toggle-form" method="post" action="/settings/spoken-navigation">
+            {csrf_input}
             <input type="hidden" name="enabled" value="{spoken_navigation_next_value}">
             <button class="toggle-button{spoken_navigation_toggle_class}" type="submit" aria-pressed="{spoken_navigation_aria_pressed}">
               <span class="sr-only">{spoken_navigation_button_label}</span>
@@ -1817,6 +1891,7 @@ def render_settings_card(config: AppConfig) -> str:
             <div class="setting-name">Library order</div>
           </div>
           <form class="select-form" method="post" action="/settings/library-order">
+            {csrf_input}
             <select class="settings-select" name="library_sort_mode" aria-label="Library order">
               {library_sort_options}
             </select>
@@ -1828,6 +1903,7 @@ def render_settings_card(config: AppConfig) -> str:
             <div class="setting-name">Screen saver</div>
           </div>
           <form class="screen-saver-settings-form" method="post" action="/settings/screensaver">
+            {csrf_input}
             <label>
               Style
               <select class="settings-select" name="screen_saver_mode" aria-label="Screen saver style">
@@ -1849,6 +1925,7 @@ def render_settings_card(config: AppConfig) -> str:
             {sleep_duration_controls}
           </div>
           <form class="toggle-form" method="post" action="/settings/sleep">
+            {csrf_input}
             <input type="hidden" name="enabled" value="{sleep_next_value}">
             <button class="toggle-button{sleep_toggle_class}" type="submit" aria-pressed="{sleep_aria_pressed}">
               <span class="sr-only">{sleep_button_label}</span>
@@ -1874,10 +1951,11 @@ def render_settings_card(config: AppConfig) -> str:
         sleep_aria_pressed=sleep_aria_pressed,
         sleep_button_label=sleep_button_label,
         sleep_duration_controls=sleep_duration_controls,
+        csrf_input=csrf_input,
     )
 
 
-def render_podcasts_card(config: AppConfig) -> str:
+def render_podcasts_card(config: AppConfig, csrf_token: str = "") -> str:
     rows = [render_podcast_row(index, podcast) for index, podcast in enumerate(config.podcasts)]
     rows.append(render_podcast_row(len(rows), None))
     return """
@@ -1885,6 +1963,7 @@ def render_podcasts_card(config: AppConfig) -> str:
       <h2 id="podcasts-heading">Podcasts</h2>
       <p class="hint">Paste the show link from podcasts.apple.com. RSS feed URLs also work. The player will show each podcast as a title and play the latest episode.</p>
       <form class="podcast-form" method="post" action="/podcasts">
+        {csrf_input}
         <div class="podcast-table" data-podcast-rows>
           {rows}
         </div>
@@ -1894,7 +1973,7 @@ def render_podcasts_card(config: AppConfig) -> str:
         </div>
       </form>
     </section>
-    """.format(rows="\n".join(rows))
+    """.format(rows="\n".join(rows), csrf_input=render_csrf_input(csrf_token))
 
 
 def render_podcast_row(index: int, podcast: PodcastConfig | None) -> str:
@@ -1970,7 +2049,7 @@ def render_screen_saver_dim_options(selected_percent: int) -> str:
     )
 
 
-def render_player_status_value(status: WebPlayerStatus) -> str:
+def render_player_status_value(status: WebPlayerStatus, csrf_token: str = "") -> str:
     volume = min(max(status.volume_percent, 0), 100)
     state = "Playing" if status.is_playing else "Paused"
     if status.muted or volume <= 0:
@@ -1985,10 +2064,12 @@ def render_player_status_value(status: WebPlayerStatus) -> str:
       <div class="now-playing-title" data-now-playing-title>{title}</div>
       <div class="now-playing-meta" data-now-playing-meta>{meta}</div>
       <form class="playback-form{hidden_class}" data-playback-form method="post" action="/player">
+        {csrf_input}
         <input data-playback-action type="hidden" name="action" value="{button_action}">
         <button data-playback-button type="submit">{button_text}</button>
       </form>
       <form class="volume-form{hidden_class}" data-volume-form method="post" action="/player">
+        {csrf_input}
         <input type="hidden" name="action" value="volume">
         <div class="volume-icon" aria-hidden="true">&#128266;</div>
         <input class="volume-slider" data-volume-slider aria-label="Volume" name="volume" type="range" min="0" max="100" value="{volume}">
@@ -2003,6 +2084,7 @@ def render_player_status_value(status: WebPlayerStatus) -> str:
         volume=volume,
         button_action=button_action,
         button_text=button_text,
+        csrf_input=render_csrf_input(csrf_token),
     )
 
 
@@ -2085,7 +2167,7 @@ def render_bluetooth_status_value(message: str) -> str:
     return html.escape(message)
 
 
-def render_wifi_card(wifi: WifiStatus) -> str:
+def render_wifi_card(wifi: WifiStatus, csrf_token: str = "") -> str:
     if wifi.connected and wifi.ssid and wifi.ssid != SETUP_HOTSPOT_SSID:
         return """
         <section class="card" aria-labelledby="wifi-heading">
@@ -2093,6 +2175,7 @@ def render_wifi_card(wifi: WifiStatus) -> str:
           <p class="hint">Connected to <strong>{ssid}</strong>.</p>
           <p class="hint">Forgetting this network will make the device form its own open Wi-Fi network. Connect to <code>{hotspot_ssid}</code>, then browse to <code>{hotspot_url}</code>.</p>
           <form method="post" action="/wifi/forget">
+            {csrf_input}
             <button type="submit">Forget this WiFi network</button>
           </form>
         </section>
@@ -2100,6 +2183,7 @@ def render_wifi_card(wifi: WifiStatus) -> str:
             ssid=html.escape(wifi.ssid),
             hotspot_ssid=html.escape(SETUP_HOTSPOT_SSID),
             hotspot_url=html.escape(SETUP_HOTSPOT_URL),
+            csrf_input=render_csrf_input(csrf_token),
         )
 
     return """
@@ -2107,6 +2191,7 @@ def render_wifi_card(wifi: WifiStatus) -> str:
       <h2 id="wifi-heading">Wi-Fi</h2>
       <p class="hint">Connect to the open Wi-Fi network <code>{hotspot_ssid}</code>, then browse to <code>{hotspot_url}</code>.</p>
       <form method="post" action="/wifi">
+        {csrf_input}
         <label for="wifi_ssid">Wi-Fi network name</label>
         <input id="wifi_ssid" name="wifi_ssid" autocomplete="off" required>
 
@@ -2119,6 +2204,7 @@ def render_wifi_card(wifi: WifiStatus) -> str:
     """.format(
         hotspot_ssid=html.escape(SETUP_HOTSPOT_SSID),
         hotspot_url=html.escape(SETUP_HOTSPOT_URL),
+        csrf_input=render_csrf_input(csrf_token),
     )
 
 
@@ -2148,6 +2234,7 @@ def saved_username(username: str) -> str:
 
 def run_setup_server(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT) -> None:
     server = ThreadingHTTPServer((host, port), SetupHandler)
+    server.csrf_token = secrets.token_urlsafe(32)
     print(f"Setup page listening on http://{host}:{port}")
     server.serve_forever()
 

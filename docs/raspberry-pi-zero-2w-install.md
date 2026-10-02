@@ -53,7 +53,7 @@ ssh chapter@192.168.1.42
 Run this on the Pi:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.0/scripts/install-raspberry-pi.sh | bash
 ```
 
 The installer handles the software setup:
@@ -85,7 +85,7 @@ sudo reboot
 To inspect the installer before running it:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh
+curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.0/scripts/install-raspberry-pi.sh
 less install-raspberry-pi.sh
 bash install-raspberry-pi.sh
 ```
@@ -237,11 +237,11 @@ If no library is selected, the player uses the user's default audiobook library 
 Run the installer again:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/main/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.0/scripts/install-raspberry-pi.sh | bash
 sudo reboot
 ```
 
-It updates the project checkout and refreshes the installed service files.
+This reinstalls the tested `v0.2.0` release and refreshes the installed service files. To move to a later release, use the versioned command published for that release. For development builds, the installer also accepts `--release-ref REF` or the `CHAPTER_RELEASE_REF` environment variable.
 
 ## Troubleshooting
 

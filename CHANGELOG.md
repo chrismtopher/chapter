@@ -4,8 +4,13 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.2.0] - 2026-10-02
+
 - Added a web setting to order the player library by title or by author last name.
 - Added optional offline spoken navigation for highlighted book titles and controls.
+- Added the Chapter color logo and refined the tabbed administration interface.
+- Added CSRF protection to setup-page forms and live player controls.
+- Pinned the Raspberry Pi installer to versioned releases for reproducible installs.
 
 ## [0.1.0] - 2026-10-01
 

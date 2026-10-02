@@ -2,6 +2,7 @@
 set -euo pipefail
 
 REPO_URL="${CHAPTER_REPO_URL:-https://github.com/chrismtopher/chapter.git}"
+RELEASE_REF="${CHAPTER_RELEASE_REF:-v0.2.0}"
 INSTALL_USER="${CHAPTER_INSTALL_USER:-chapter}"
 INSTALL_DIR="${CHAPTER_INSTALL_DIR:-}"
 ASSUME_YES=0
@@ -54,12 +55,14 @@ Options:
   --no-reboot        Do not reboot at the end.
   --force            Skip the Raspberry Pi hardware check.
   --repo-url URL     Git repository to clone. Default: ${REPO_URL}
+  --release-ref REF  Release tag or commit to install. Default: ${RELEASE_REF}
   --user USER        Service user. Default: ${INSTALL_USER}
   --install-dir DIR  Install directory. Default: /home/${INSTALL_USER}/audiobookshelf-player
   -h, --help         Show this help.
 
 Environment overrides:
   CHAPTER_REPO_URL
+  CHAPTER_RELEASE_REF
   CHAPTER_INSTALL_USER
   CHAPTER_INSTALL_DIR
 EOF
@@ -81,6 +84,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --repo-url)
       REPO_URL="${2:?Missing value for --repo-url}"
+      shift 2
+      ;;
+    --release-ref)
+      RELEASE_REF="${2:?Missing value for --release-ref}"
       shift 2
       ;;
     --user)
@@ -228,9 +235,8 @@ sync_project() {
 
   if [[ -d "${INSTALL_DIR}/.git" ]]; then
     sudo_run chown -R "$INSTALL_USER:$INSTALL_USER" "$INSTALL_DIR"
-    as_install_user git -C "$INSTALL_DIR" fetch origin
-    as_install_user git -C "$INSTALL_DIR" checkout main
-    as_install_user git -C "$INSTALL_DIR" pull --ff-only origin main
+    as_install_user git -C "$INSTALL_DIR" fetch --tags origin
+    as_install_user git -C "$INSTALL_DIR" checkout --detach "$RELEASE_REF"
     return
   fi
 
@@ -238,7 +244,8 @@ sync_project() {
     die "${INSTALL_DIR} already exists but is not a Git checkout. Move it aside or set CHAPTER_INSTALL_DIR."
   fi
 
-  as_install_user git clone "$REPO_URL" "$INSTALL_DIR"
+  as_install_user git clone --no-checkout "$REPO_URL" "$INSTALL_DIR"
+  as_install_user git -C "$INSTALL_DIR" checkout --detach "$RELEASE_REF"
 }
 
 ensure_boot_config_line() {

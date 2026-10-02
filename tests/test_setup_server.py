@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import io
+import re
 import unittest
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from abs_kids_player import __version__
@@ -17,6 +19,7 @@ from abs_kids_player.bluetooth_audio import BluetoothDevice
 from abs_kids_player.player_control import WebPlayerStatus
 from abs_kids_player.setup_server import (
     PAGE,
+    MAX_POST_BODY_BYTES,
     SYSTEM_ACTION_DELAY_SECONDS,
     WIFI_CHANGE_DELAY_SECONDS,
     audiobookshelf_status,
@@ -614,6 +617,75 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn('window.localStorage.getItem(tabStorageKey)', PAGE)
         self.assertIn('event.key === "ArrowRight"', PAGE)
         self.assertIn('event.key === "ArrowLeft"', PAGE)
+
+    def test_rendered_admin_page_protects_every_post_form_with_csrf_token(self) -> None:
+        handler = object.__new__(SetupHandler)
+        handler.server = SimpleNamespace(csrf_token="test-csrf-token")
+        handler.send_response = Mock()
+        handler.send_header = Mock()
+        handler.end_headers = Mock()
+        handler.wfile = io.BytesIO()
+
+        with (
+            patch("abs_kids_player.setup_server.load_config", return_value=AppConfig()),
+            patch(
+                "abs_kids_player.setup_server.wifi_status",
+                return_value=WifiStatus(connected=True, ssid="Chapter WiFi"),
+            ),
+            patch("abs_kids_player.setup_server.audiobookshelf_status", return_value=(False, "Not configured")),
+            patch("abs_kids_player.setup_server.load_web_player_status", return_value=WebPlayerStatus()),
+            patch("abs_kids_player.setup_server.bluetooth_status", return_value=(False, "Not connected")),
+        ):
+            handler.send_page()
+
+        page = handler.wfile.getvalue().decode("utf-8")
+        forms = re.findall(r'<form\b[^>]*method="post"[^>]*>(.*?)</form>', page, flags=re.DOTALL)
+        self.assertGreater(len(forms), 0)
+        for form in forms:
+            self.assertIn('name="csrf_token" value="test-csrf-token"', form)
+        self.assertIn('meta name="chapter-csrf-token" content="test-csrf-token"', page)
+        self.assertIn('fields["csrf_token"] = csrfToken', page)
+
+    def test_post_dispatch_accepts_valid_csrf_token(self) -> None:
+        body = b"csrf_token=test-csrf-token"
+        handler = object.__new__(SetupHandler)
+        handler.path = "/system/reset"
+        handler.headers = {"Content-Length": str(len(body))}
+        handler.rfile = io.BytesIO(body)
+        handler.server = SimpleNamespace(csrf_token="test-csrf-token")
+        handler.handle_system_reset_post = Mock()
+        handler.send_csrf_error = Mock()
+
+        handler.do_POST()
+
+        handler.handle_system_reset_post.assert_called_once_with()
+        handler.send_csrf_error.assert_not_called()
+
+    def test_post_dispatch_rejects_missing_or_invalid_csrf_token(self) -> None:
+        for body in (b"", b"csrf_token=wrong-token"):
+            with self.subTest(body=body):
+                handler = object.__new__(SetupHandler)
+                handler.path = "/system/reset"
+                handler.headers = {"Content-Length": str(len(body))}
+                handler.rfile = io.BytesIO(body)
+                handler.server = SimpleNamespace(csrf_token="test-csrf-token")
+                handler.handle_system_reset_post = Mock()
+                handler.send_csrf_error = Mock()
+
+                handler.do_POST()
+
+                handler.handle_system_reset_post.assert_not_called()
+                handler.send_csrf_error.assert_called_once_with()
+
+    def test_post_body_size_is_limited_before_reading(self) -> None:
+        handler = object.__new__(SetupHandler)
+        handler.headers = {"Content-Length": str(MAX_POST_BODY_BYTES + 1)}
+        handler.rfile = io.BytesIO()
+        handler.send_request_error = Mock()
+
+        self.assertIsNone(handler.post_fields())
+
+        handler.send_request_error.assert_called_once_with(413, "Request is too large.")
 
     def test_system_card_shows_version_and_uses_in_page_confirmations(self) -> None:
         html = render_system_card()
