@@ -4,6 +4,10 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.3] - 2026-10-02
+
+- Silence paused and muted playback completely while keeping the I2S audio path active for pop-free resume.
+
 ## [0.3.2] - 2026-10-02
 
 - Show an `UPDATING / DO NOT POWER OFF` warning on the OLED for the full software update.

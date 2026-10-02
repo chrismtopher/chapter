@@ -6,7 +6,8 @@ from unittest.mock import patch
 
 from abs_kids_player.playback import (
     GStreamerPlayback,
-    SILENCE_VOLUME_FLOOR,
+    PREROLL_VOLUME_FLOOR,
+    SILENCE_VOLUME,
     SPOKEN_NAVIGATION_DUCK_FACTOR,
     smart_resume_rewind_seconds,
 )
@@ -121,7 +122,7 @@ class PlaybackTest(unittest.TestCase):
             with patch("abs_kids_player.playback.time.sleep"):
                 playback.start(session, FakeClient())
 
-        self.assertAlmostEqual(playback.playbin.volume_values[0], SILENCE_VOLUME_FLOOR)
+        self.assertAlmostEqual(playback.playbin.volume_values[0], PREROLL_VOLUME_FLOOR)
         self.assertEqual(playback.playbin.states[0], FakeGst.State.NULL)
         self.assertEqual(playback.playbin.states[-1], FakeGst.State.PLAYING)
         self.assertEqual(playback.playbin.seeks[-1], (FakeGst.Format.TIME, 3, 42))
@@ -130,7 +131,7 @@ class PlaybackTest(unittest.TestCase):
         first_audible_volume_index = next(
             index
             for index, event in enumerate(playback.playbin.events)
-            if event[0] == "volume" and event[1] > SILENCE_VOLUME_FLOOR
+            if event[0] == "volume" and event[1] > PREROLL_VOLUME_FLOOR
         )
         self.assertLess(preroll_seek_index, playing_index)
         self.assertLess(playing_index, first_audible_volume_index)
@@ -207,7 +208,7 @@ class PlaybackTest(unittest.TestCase):
 
         self.assertEqual(playback.volume_percent, 75)
         self.assertTrue(playback.muted)
-        self.assertAlmostEqual(playback.playbin.properties["volume"], SILENCE_VOLUME_FLOOR)
+        self.assertEqual(playback.playbin.properties["volume"], 0.0)
         self.assertNotIn("mute", playback.playbin.properties)
 
     def test_zero_volume_counts_as_muted(self) -> None:
@@ -217,7 +218,7 @@ class PlaybackTest(unittest.TestCase):
         playback.set_volume_state(0, muted=False)
 
         self.assertTrue(playback.muted)
-        self.assertAlmostEqual(playback.playbin.properties["volume"], SILENCE_VOLUME_FLOOR)
+        self.assertEqual(playback.playbin.properties["volume"], 0.0)
 
     def test_missing_mute_property_does_not_block_volume_control(self) -> None:
         playback = GStreamerPlayback()
@@ -244,7 +245,7 @@ class PlaybackTest(unittest.TestCase):
         self.assertFalse(playback.is_playing)
         self.assertTrue(playback.soft_paused)
         self.assertEqual(playback.soft_pause_time, 42)
-        self.assertAlmostEqual(playback.playbin.properties["volume"], SILENCE_VOLUME_FLOOR)
+        self.assertEqual(playback.playbin.properties["volume"], 0.0)
         self.assertEqual(playback.playbin.states, [])
         self.assertEqual(playback.client.calls, [])
 
@@ -331,17 +332,17 @@ class PlaybackTest(unittest.TestCase):
         playback.muted = True
         playback.soft_paused = True
         playback.soft_pause_time = 42
-        playback._effective_volume = SILENCE_VOLUME_FLOOR
+        playback._effective_volume = SILENCE_VOLUME
 
         with patch("abs_kids_player.playback.time.sleep"):
             playback.resume(sync=False, percent=50, muted=False)
 
-        self.assertEqual(playback.playbin.volume_values[0], SILENCE_VOLUME_FLOOR)
+        self.assertEqual(playback.playbin.volume_values[0], PREROLL_VOLUME_FLOOR)
         self.assertEqual(playback.playbin.states[-1], FakeGst.State.PLAYING)
         self.assertAlmostEqual(playback.playbin.volume_values[-1], 0.5)
         self.assertFalse(playback.muted)
 
-    def test_soft_pause_fades_volume_down(self) -> None:
+    def test_soft_pause_fades_volume_down_to_true_silence(self) -> None:
         playback = GStreamerPlayback()
         playback.Gst = FakeGst()
         playback.playbin = FakePlaybin()
@@ -355,7 +356,7 @@ class PlaybackTest(unittest.TestCase):
             playback.pause(sync=False)
 
         self.assertGreater(len(playback.playbin.volume_values), 1)
-        self.assertAlmostEqual(playback.playbin.volume_values[-1], SILENCE_VOLUME_FLOOR)
+        self.assertEqual(playback.playbin.volume_values[-1], 0.0)
         self.assertGreater(playback.playbin.volume_values[0], playback.playbin.volume_values[-1])
 
     def test_poll_does_not_query_position_while_paused(self) -> None:

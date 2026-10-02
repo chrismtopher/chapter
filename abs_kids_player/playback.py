@@ -12,7 +12,8 @@ from .models import PlaybackSession
 PROGRESS_SYNC_SECONDS = 15
 VOLUME_FADE_SECONDS = 0.35
 VOLUME_FADE_STEPS = 16
-SILENCE_VOLUME_FLOOR = 0.001
+PREROLL_VOLUME_FLOOR = 0.001
+SILENCE_VOLUME = 0.0
 MAX_EFFECTIVE_VOLUME = 1.0
 SPOKEN_NAVIGATION_DUCK_FACTOR = 0.18
 PLAY_START_SETTLE_SECONDS = 0.20
@@ -65,9 +66,9 @@ class GStreamerPlayback:
         self.soft_pause_time = 0.0
         self.soft_paused_at = 0.0
         self.spoken_navigation_ducked = False
-        self.set_output_volume(SILENCE_VOLUME_FLOOR)
+        self.set_output_volume(PREROLL_VOLUME_FLOOR)
         self.load_current_track(apply_audio=False)
-        self.set_output_volume(SILENCE_VOLUME_FLOOR)
+        self.set_output_volume(PREROLL_VOLUME_FLOOR)
         self.playbin.set_state(self.Gst.State.PLAYING)
         self.is_playing = True
         time.sleep(PLAY_START_SETTLE_SECONDS)
@@ -104,7 +105,7 @@ class GStreamerPlayback:
         if muted is not None:
             self.muted = muted or self.volume_percent <= 0
         resume_time = self.smart_resume_time() if self.soft_paused else None
-        self.set_output_volume(SILENCE_VOLUME_FLOOR)
+        self.set_output_volume(PREROLL_VOLUME_FLOOR)
         if resume_time is not None:
             self.seek_without_sync(resume_time)
         self.soft_paused = False
@@ -279,7 +280,7 @@ class GStreamerPlayback:
         if self.session is None or self.playbin is None or self.Gst is None:
             return
         was_playing = self.is_playing
-        self.set_output_volume(SILENCE_VOLUME_FLOOR)
+        self.set_output_volume(PREROLL_VOLUME_FLOOR)
         self.load_current_track(apply_audio=False)
         self.playbin.set_state(self.Gst.State.PLAYING if was_playing else self.Gst.State.PAUSED)
         if was_playing:
@@ -397,7 +398,7 @@ class GStreamerPlayback:
 
     def target_effective_volume(self) -> float:
         if self.muted or self.soft_paused:
-            return SILENCE_VOLUME_FLOOR
+            return SILENCE_VOLUME
         target = (self.volume_percent / 100) * MAX_EFFECTIVE_VOLUME
         if self.spoken_navigation_ducked:
             target *= SPOKEN_NAVIGATION_DUCK_FACTOR
