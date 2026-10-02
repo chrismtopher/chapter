@@ -4,6 +4,8 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.0] - 2026-10-02
+
 - Added System-tab release checks and one-button stable software updates that preserve device settings.
 
 ## [0.2.2] - 2026-10-02

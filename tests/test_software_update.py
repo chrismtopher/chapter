@@ -26,6 +26,9 @@ RELEASES = """\
 3333333333333333333333333333333333333333\trefs/tags/v0.3.0-rc1
 4444444444444444444444444444444444444444\trefs/tags/not-a-release
 """
+FUTURE_RELEASES = RELEASES + (
+    "5555555555555555555555555555555555555555\trefs/tags/v0.4.0\n"
+)
 
 
 class SoftwareUpdateTest(unittest.TestCase):
@@ -140,7 +143,7 @@ class SoftwareUpdateTest(unittest.TestCase):
         def runner(args, **_kwargs):
             commands.append(args)
             if args[:2] == ["git", "ls-remote"]:
-                return subprocess.CompletedProcess(args, 0, stdout=RELEASES, stderr="")
+                return subprocess.CompletedProcess(args, 0, stdout=FUTURE_RELEASES, stderr="")
             if "show" in args:
                 return subprocess.CompletedProcess(
                     args,
@@ -163,7 +166,7 @@ class SoftwareUpdateTest(unittest.TestCase):
             )
             state = load_update_state()
 
-        self.assertEqual(installed, "0.3.0")
+        self.assertEqual(installed, "0.4.0")
         self.assertEqual(state.phase, "completed")
         self.assertIn(
             [
@@ -183,13 +186,13 @@ class SoftwareUpdateTest(unittest.TestCase):
                 "-C",
                 "/home/chapter/audiobookshelf-player",
                 "show",
-                "v0.3.0:scripts/install-raspberry-pi.sh",
+                "v0.4.0:scripts/install-raspberry-pi.sh",
             ],
             commands,
         )
         installer_command = next(command for command in commands if command[0] == "bash")
         self.assertIn("--release-ref", installer_command)
-        self.assertIn("v0.3.0", installer_command)
+        self.assertIn("v0.4.0", installer_command)
         self.assertIn("--no-reboot", installer_command)
         self.assertIn(
             ["systemctl", "restart", "audiobookshelf-player-oled.service"],
