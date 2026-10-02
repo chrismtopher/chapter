@@ -750,6 +750,8 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn('statusText.textContent = "Finishing update..."', PAGE)
         self.assertIn("softwareUpdateWasInstalling ? 2000", PAGE)
         self.assertIn('window.location.replace("/")', PAGE)
+        self.assertIn('description.hidden = !description.textContent.trim()', PAGE)
+        self.assertNotIn("This player is running the latest stable version of Chapter.", PAGE)
 
     def test_logo_asset_is_served_as_cached_png(self) -> None:
         handler = object.__new__(SetupHandler)

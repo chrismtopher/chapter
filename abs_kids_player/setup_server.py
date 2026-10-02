@@ -800,13 +800,14 @@ PAGE = """<!doctype html>
       }} else if (status.updateAvailable) {{
         statusText.textContent = latestVersion + " available";
         description.textContent = "A newer stable version of Chapter is ready to install.";
-      }} else if (status.phase === "completed" && status.message) {{
+      }} else if (status.phase === "completed") {{
         statusText.textContent = "Up to date";
-        description.textContent = status.message;
+        description.textContent = "";
       }} else {{
         statusText.textContent = "Up to date";
-        description.textContent = "This player is running the latest stable version of Chapter.";
+        description.textContent = "";
       }}
+      description.hidden = !description.textContent.trim();
       if (versionText) {{
         versionText.textContent = latestVersion || "the latest release";
       }}
