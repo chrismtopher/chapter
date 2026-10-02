@@ -4,7 +4,7 @@ import unittest
 import queue
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from abs_kids_player.api import AudiobookshelfError
 from abs_kids_player.config import (
@@ -218,6 +218,32 @@ def make_playback_session() -> PlaybackSession:
 
 
 class OledServiceTest(unittest.TestCase):
+    def test_home_jump_letter_uses_its_own_larger_font_without_moving_content(self) -> None:
+        display = object.__new__(Sh1122Display)
+        display.draw = Mock()
+        display.font_home_title = object()
+        display.font_home_author = object()
+        display.font_section_letter = object()
+        display.draw_centered_text = Mock()
+        display.draw_scrolling_text = Mock()
+        display.draw_bottom_left_text = Mock()
+        display.draw_bottom_right_text = Mock()
+
+        with (
+            patch("abs_kids_player.appliance_io.text_width", return_value=20),
+            patch("abs_kids_player.appliance_io.fit_text", side_effect=lambda _draw, text, _font, _width: text),
+        ):
+            display.draw_home(HomeFrame("Matilda", "By Roald Dahl", section_letter="M", section_letter_fill=200))
+
+        self.assertEqual(display.draw_centered_text.call_args_list[0].kwargs["y"], 12)
+        self.assertEqual(display.draw_centered_text.call_args_list[1].kwargs["y"], 34)
+        display.draw_bottom_right_text.assert_called_once_with(
+            "M",
+            display.font_section_letter,
+            fill=200,
+            margin=3,
+        )
+
     def test_oled_text_uses_ascii_apostrophes(self) -> None:
         self.assertEqual(oled_safe_text("Charlotte\u2019s Web"), "Charlotte's Web")
         self.assertEqual(oled_safe_text("Dragon\ufffds Promise"), "Dragon's Promise")

@@ -65,6 +65,7 @@ class Sh1122Display:
         self.font_splash = load_font(ImageFont, 26)
         self.font_home_title = load_font(ImageFont, 18)
         self.font_home_author = load_font(ImageFont, 13)
+        self.font_section_letter = load_font(ImageFont, 20)
         self.font_top = load_font(ImageFont, 16)
         self.font_bottom = load_font(ImageFont, 12)
         self.font_screen_saver = load_screen_saver_fonts(ImageFont)
@@ -223,7 +224,7 @@ class Sh1122Display:
         if frame.section_letter and frame.section_letter_fill > 0:
             self.draw_bottom_right_text(
                 frame.section_letter,
-                self.font_bottom,
+                self.font_section_letter,
                 fill=max(0, min(255, frame.section_letter_fill)),
                 margin=3,
             )

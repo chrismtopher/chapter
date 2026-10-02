@@ -4,6 +4,10 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.6] - 2026-10-02
+
+- Enlarge the library alphabet jump letter without changing title, author, or series alignment.
+
 ## [0.3.5] - 2026-10-02
 
 - Keep the administration page on rapid update polling while services restart.
