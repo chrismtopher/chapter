@@ -1743,11 +1743,8 @@ def render_settings_card(config: AppConfig) -> str:
     toggle_class = " is-on" if enabled else ""
     aria_pressed = "true" if enabled else "false"
     button_label = "Disable control knob click sound" if enabled else "Enable control knob click sound"
-    screen_saver_label = screen_saver_mode_label(config.screen_saver_mode)
-    screen_saver_state = f"{screen_saver_label}, {config.screen_saver_dim_percent}% dim level"
     sleep_enabled = config.sleep_timer_enabled
     sleep_next_value = "0" if sleep_enabled else "1"
-    sleep_status = "Enabled" if sleep_enabled else "Disabled"
     sleep_toggle_class = " is-on" if sleep_enabled else ""
     sleep_aria_pressed = "true" if sleep_enabled else "false"
     sleep_button_label = "Disable sleep timer" if sleep_enabled else "Enable sleep timer"
@@ -1794,7 +1791,6 @@ def render_settings_card(config: AppConfig) -> str:
         <div class="settings-row screen-saver-row">
           <div>
             <div class="setting-name">Screen saver</div>
-            <div class="setting-state">{screen_saver_state}</div>
           </div>
           <form class="screen-saver-settings-form" method="post" action="/settings/screensaver">
             <label>
@@ -1815,7 +1811,6 @@ def render_settings_card(config: AppConfig) -> str:
         <div class="settings-row">
           <div class="sleep-timer-content">
             <div class="setting-name">Sleep timer</div>
-            <div class="setting-state">{sleep_status}</div>
             {sleep_duration_controls}
           </div>
           <form class="toggle-form" method="post" action="/settings/sleep">
@@ -1833,10 +1828,8 @@ def render_settings_card(config: AppConfig) -> str:
         aria_pressed=aria_pressed,
         button_label=button_label,
         library_sort_options=render_library_sort_options(config.library_sort_mode),
-        screen_saver_state=html.escape(screen_saver_state),
         screen_saver_options=render_screen_saver_options(config.screen_saver_mode),
         screen_saver_dim_options=render_screen_saver_dim_options(config.screen_saver_dim_percent),
-        sleep_status=sleep_status,
         sleep_next_value=sleep_next_value,
         sleep_toggle_class=sleep_toggle_class,
         sleep_aria_pressed=sleep_aria_pressed,
@@ -1936,14 +1929,6 @@ def render_screen_saver_dim_options(selected_percent: int) -> str:
         )
         for value in SCREEN_SAVER_DIM_LEVELS
     )
-
-
-def screen_saver_mode_label(mode: str) -> str:
-    return {
-        SCREEN_SAVER_CHAPTER: "Chapter word",
-        SCREEN_SAVER_BOOKS: "Book titles",
-        SCREEN_SAVER_CLOCK: "Digital clock",
-    }.get(mode, "Chapter word")
 
 
 def render_player_status_value(status: WebPlayerStatus) -> str:
