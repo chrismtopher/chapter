@@ -10,6 +10,10 @@ from typing import Callable
 DuckCallback = Callable[[bool], None]
 ProcessFactory = Callable[..., subprocess.Popen]
 
+ESPEAK_VOICE = "en-us+f3"
+ESPEAK_SPEED_WPM = 150
+ESPEAK_PITCH = 45
+
 
 @dataclass(frozen=True)
 class SpeechRequest:
@@ -82,12 +86,13 @@ class SpokenNavigationFeedback:
                 [
                     "espeak-ng",
                     "--stdout",
+                    "-z",
                     "-v",
-                    "en-us",
+                    ESPEAK_VOICE,
                     "-s",
-                    "155",
+                    str(ESPEAK_SPEED_WPM),
                     "-p",
-                    "55",
+                    str(ESPEAK_PITCH),
                     "-a",
                     str(amplitude),
                     request.text,

@@ -5,6 +5,7 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 ## Unreleased
 
 - Return from the library to the current playback controls after five seconds of inactivity while audio is playing.
+- Refine the lightweight eSpeak NG spoken-navigation voice for softer, more natural delivery.
 
 ## [0.2.1] - 2026-10-02
 

@@ -3,7 +3,12 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
-from abs_kids_player.spoken_navigation import SpokenNavigationFeedback
+from abs_kids_player.spoken_navigation import (
+    ESPEAK_PITCH,
+    ESPEAK_SPEED_WPM,
+    ESPEAK_VOICE,
+    SpokenNavigationFeedback,
+)
 
 
 class FakePipe:
@@ -57,6 +62,23 @@ class SpokenNavigationFeedbackTest(unittest.TestCase):
             feedback.poll("bluealsa:test")
 
         self.assertEqual(ducked, [True])
+        self.assertEqual(
+            processes[0].command,
+            [
+                "espeak-ng",
+                "--stdout",
+                "-z",
+                "-v",
+                ESPEAK_VOICE,
+                "-s",
+                str(ESPEAK_SPEED_WPM),
+                "-p",
+                str(ESPEAK_PITCH),
+                "-a",
+                "100",
+                "The Wild Robot",
+            ],
+        )
         self.assertEqual(processes[0].command[-1], "The Wild Robot")
         self.assertIn("100", processes[0].command)
         self.assertEqual(processes[1].command, ["aplay", "-q", "-D", "bluealsa:test"])
