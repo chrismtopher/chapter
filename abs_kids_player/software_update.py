@@ -44,6 +44,7 @@ class SoftwareUpdateState:
     target_version: str = ""
     message: str = ""
     updated_at: float = 0.0
+    display_ready: bool = False
 
 
 def run_command(args: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
@@ -170,6 +171,7 @@ def load_update_state() -> SoftwareUpdateState:
         target_version=str(data.get("target_version", "")),
         message=str(data.get("message", "")),
         updated_at=float(data.get("updated_at") or 0),
+        display_ready=bool(data.get("display_ready")),
     )
 
 
@@ -184,6 +186,45 @@ def save_update_state(state: SoftwareUpdateState) -> None:
         finalize_storage_file(path)
     finally:
         temporary_path.unlink(missing_ok=True)
+
+
+def mark_update_display_ready() -> bool:
+    state = load_update_state()
+    if state.phase != "installing":
+        return False
+    if state.display_ready:
+        return True
+    save_update_state(
+        SoftwareUpdateState(
+            phase=state.phase,
+            target_version=state.target_version,
+            message=state.message,
+            updated_at=state.updated_at,
+            display_ready=True,
+        )
+    )
+    return True
+
+
+def wait_for_update_display_ready(
+    timeout_seconds: float = 12.0,
+    poll_seconds: float = 0.1,
+    state_loader: Callable[[], SoftwareUpdateState] | None = None,
+    sleeper: Callable[[float], None] = time.sleep,
+    clock: Callable[[], float] = time.monotonic,
+) -> bool:
+    load_state = state_loader or load_update_state
+    deadline = clock() + max(0.0, timeout_seconds)
+    while True:
+        state = load_state()
+        if state.phase != "installing":
+            return False
+        if state.display_ready:
+            return True
+        remaining = deadline - clock()
+        if remaining <= 0:
+            return False
+        sleeper(min(max(poll_seconds, 0.01), remaining))
 
 
 def command_for_install_user(args: list[str], install_user: str) -> list[str]:

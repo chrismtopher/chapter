@@ -14,10 +14,12 @@ from abs_kids_player.software_update import (
     install_latest_release,
     latest_release_tag,
     load_update_state,
+    mark_update_display_ready,
     save_update_state,
     update_state_is_active,
     update_status_payload,
     version_tuple,
+    wait_for_update_display_ready,
 )
 
 
@@ -78,6 +80,7 @@ class SoftwareUpdateTest(unittest.TestCase):
                 target_version="0.3.0",
                 message="Installing v0.3.0.",
                 updated_at=123.0,
+                display_ready=True,
             )
             with patch.dict(os.environ, {"ABS_KIDS_PLAYER_STATE_DIR": temporary_dir}):
                 save_update_state(state)
@@ -85,6 +88,43 @@ class SoftwareUpdateTest(unittest.TestCase):
 
             self.assertEqual(loaded, state)
             self.assertEqual((Path(temporary_dir) / "software-update.json").stat().st_mode & 0o777, 0o600)
+
+    def test_oled_can_acknowledge_that_update_screen_is_ready(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            with patch.dict(os.environ, {"ABS_KIDS_PLAYER_STATE_DIR": temporary_dir}):
+                save_update_state(
+                    SoftwareUpdateState(
+                        phase="installing",
+                        message="Preparing the software update.",
+                        updated_at=123.0,
+                    )
+                )
+
+                self.assertTrue(mark_update_display_ready())
+                state = load_update_state()
+
+        self.assertTrue(state.display_ready)
+        self.assertEqual(state.phase, "installing")
+        self.assertEqual(state.updated_at, 123.0)
+
+    def test_updater_waits_until_oled_acknowledges_the_screen(self) -> None:
+        states = iter(
+            [
+                SoftwareUpdateState(phase="installing", updated_at=123.0),
+                SoftwareUpdateState(phase="installing", updated_at=123.0, display_ready=True),
+            ]
+        )
+        sleeps: list[float] = []
+
+        ready = wait_for_update_display_ready(
+            timeout_seconds=1.0,
+            state_loader=lambda: next(states),
+            sleeper=sleeps.append,
+            clock=lambda: 0.0,
+        )
+
+        self.assertTrue(ready)
+        self.assertEqual(sleeps, [0.1])
 
     def test_only_recent_installing_state_is_active(self) -> None:
         active = SoftwareUpdateState(phase="installing", updated_at=100.0)

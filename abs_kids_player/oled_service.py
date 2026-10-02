@@ -75,7 +75,7 @@ from .rotary_ui import (
     title_sort_text,
 )
 from .spoken_navigation import SpokenNavigationFeedback
-from .software_update import load_update_state, update_state_is_active
+from .software_update import load_update_state, mark_update_display_ready, update_state_is_active
 from .wifi import SETUP_HOTSPOT_SSID, SETUP_HOTSPOT_URL, WifiStatus, wifi_status
 
 
@@ -99,7 +99,7 @@ DEFAULT_CONTROL_CLICK_MIN_INTERVAL_SECONDS = 0.045
 DEFAULT_SLEEP_CONFIRM_SECONDS = 30
 DEFAULT_ACTIVE_BRIGHTNESS_PERCENT = 100
 DEFAULT_RUNTIME_CONFIG_REFRESH_SECONDS = 1.0
-DEFAULT_SOFTWARE_UPDATE_REFRESH_SECONDS = 0.5
+DEFAULT_SOFTWARE_UPDATE_REFRESH_SECONDS = 0.2
 DEFAULT_WAKE_INPUT_QUIET_SECONDS = 0.35
 VOLUME_STEP_PERCENT = 5
 BOOK_LOADING_FRAME = TwoLineFrame("Grabbing that book", "from the shelf...")
@@ -908,6 +908,7 @@ def run_oled_service(
         last_runtime_config_load = last_input_at
         last_software_update_load = 0.0
         software_update_active = False
+        software_update_display_ready = False
         software_update_screen_visible = False
         sleep_timer = ListeningSleepTimer()
         display_brightness_percent = DEFAULT_ACTIVE_BRIGHTNESS_PERCENT
@@ -924,7 +925,9 @@ def run_oled_service(
                 loop_elapsed = min(full_loop_elapsed, 1.0)
                 last_loop_at = now
                 if now - last_software_update_load >= DEFAULT_SOFTWARE_UPDATE_REFRESH_SECONDS:
-                    software_update_active = update_state_is_active(load_update_state())
+                    software_update_state = load_update_state()
+                    software_update_active = update_state_is_active(software_update_state)
+                    software_update_display_ready = software_update_state.display_ready
                     last_software_update_load = now
                 if software_update_active:
                     drain_input_events(events)
@@ -944,6 +947,11 @@ def run_oled_service(
                             software_volume,
                             software_muted,
                         )
+                    if not software_update_display_ready:
+                        try:
+                            software_update_display_ready = mark_update_display_ready()
+                        except OSError as error:
+                            print(f"Software update display acknowledgement failed: {error}")
                     sleep_until_shutdown(shutdown, refresh_seconds)
                     continue
                 software_update_screen_visible = False

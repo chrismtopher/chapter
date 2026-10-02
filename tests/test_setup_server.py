@@ -853,12 +853,17 @@ class SetupServerTest(unittest.TestCase):
             def start(self) -> None:
                 pass
 
+        wait_for_display = Mock(return_value=True)
         with patch("abs_kids_player.setup_server.threading.Timer", FakeTimer):
-            schedule_software_update(runner=lambda command: commands.append(command))
+            schedule_software_update(
+                runner=lambda command: commands.append(command),
+                display_ready_waiter=wait_for_display,
+            )
 
         self.assertEqual(timers[0].delay, SYSTEM_ACTION_DELAY_SECONDS)
         self.assertTrue(timers[0].daemon)
         timers[0].callback()
+        wait_for_display.assert_called_once_with()
         self.assertEqual(
             commands,
             [["systemctl", "start", "--no-block", "audiobookshelf-player-update.service"]],

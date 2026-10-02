@@ -53,7 +53,7 @@ ssh chapter@192.168.1.42
 Run this on the Pi:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.3/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.4/scripts/install-raspberry-pi.sh | bash
 ```
 
 The installer handles the software setup:
@@ -85,7 +85,7 @@ sudo reboot
 To inspect the installer before running it:
 
 ```bash
-curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.3/scripts/install-raspberry-pi.sh
+curl -fsSLO https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.4/scripts/install-raspberry-pi.sh
 less install-raspberry-pi.sh
 bash install-raspberry-pi.sh
 ```
@@ -239,11 +239,11 @@ If no library is selected, the player uses the user's default audiobook library 
 Run the installer again:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.3/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.4/scripts/install-raspberry-pi.sh | bash
 sudo reboot
 ```
 
-This reinstalls the tested `v0.3.3` release and refreshes the installed service files. To move to a later release, use the versioned command published for that release. For development builds, the installer also accepts `--release-ref REF` or the `CHAPTER_RELEASE_REF` environment variable.
+This reinstalls the tested `v0.3.4` release and refreshes the installed service files. To move to a later release, use the versioned command published for that release. For development builds, the installer also accepts `--release-ref REF` or the `CHAPTER_RELEASE_REF` environment variable.
 
 After installing a release that includes device updates, open the **System** tab on the Chapter administration page. The player checks the public Chapter release tags and offers an **Update** button only when a newer stable version is available. Updating pauses playback, keeps the device configuration and listening state, installs the newest stable release, and restarts the player services. Keep the player powered on and connected to the internet until the administration page becomes available again.
 

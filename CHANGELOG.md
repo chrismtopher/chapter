@@ -4,6 +4,11 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.4] - 2026-10-02
+
+- Pause playback and show the OLED update warning before installation work begins.
+- Wait for an OLED-ready acknowledgement before starting the updater, with a bounded fallback timeout.
+
 ## [0.3.3] - 2026-10-02
 
 - Silence paused and muted playback completely while keeping the I2S audio path active for pop-free resume.

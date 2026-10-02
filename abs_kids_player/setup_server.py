@@ -44,6 +44,7 @@ from .software_update import (
     SoftwareUpdateState,
     save_update_state,
     update_status_payload,
+    wait_for_update_display_ready,
 )
 from .wifi import (
     SETUP_HOTSPOT_SSID,
@@ -1460,7 +1461,6 @@ class SetupHandler(BaseHTTPRequestHandler):
         schedule_system_reboot()
 
     def handle_system_update_post(self) -> None:
-        queue_web_player_command("pause")
         save_update_state(
             SoftwareUpdateState(
                 phase="installing",
@@ -1468,6 +1468,7 @@ class SetupHandler(BaseHTTPRequestHandler):
                 updated_at=time.time(),
             )
         )
+        queue_web_player_command("pause")
         self.send_page(
             message=(
                 "Software update started. Playback is paused while Chapter installs the latest "
@@ -1684,6 +1685,7 @@ def schedule_wifi_forget(delay_seconds: float = WIFI_CHANGE_DELAY_SECONDS) -> No
 
 
 SystemCommandRunner = Callable[[list[str]], subprocess.CompletedProcess]
+UpdateDisplayReadyWaiter = Callable[[], bool]
 
 
 def run_system_command(args: list[str]) -> subprocess.CompletedProcess:
@@ -1709,9 +1711,12 @@ def schedule_system_reboot(
 def schedule_software_update(
     delay_seconds: float = SYSTEM_ACTION_DELAY_SECONDS,
     runner: SystemCommandRunner = run_system_command,
+    display_ready_waiter: UpdateDisplayReadyWaiter = wait_for_update_display_ready,
 ) -> None:
     def worker() -> None:
         try:
+            if not display_ready_waiter():
+                print("Software update display acknowledgement timed out; continuing", flush=True)
             print("Software update starting", flush=True)
             runner(["systemctl", "start", "--no-block", UPDATE_SERVICE_NAME])
         except (OSError, subprocess.CalledProcessError) as error:
