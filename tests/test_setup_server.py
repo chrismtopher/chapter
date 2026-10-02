@@ -634,8 +634,8 @@ class SetupServerTest(unittest.TestCase):
         self.assertNotIn("library_id", PAGE)
 
     def test_admin_page_groups_controls_into_accessible_tabs(self) -> None:
-        self.assertIn("<title>Chapter Player for Audiobookshelf</title>", PAGE)
-        self.assertIn("<h1>Chapter Player for Audiobookshelf</h1>", PAGE)
+        self.assertIn("<title>Chapter Player</title>", PAGE)
+        self.assertIn("<h1>Chapter Player</h1>", PAGE)
         self.assertIn('class="app-brand"', PAGE)
         self.assertIn('class="app-logo" src="/assets/chapter-logo.png"', PAGE)
         self.assertIn('width="84" height="63" alt=""', PAGE)

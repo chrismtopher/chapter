@@ -77,7 +77,7 @@ PAGE = """<!doctype html>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="chapter-csrf-token" content="{csrf_token}">
-  <title>Chapter Player for Audiobookshelf</title>
+  <title>Chapter Player</title>
   <link rel="icon" type="image/png" href="/assets/chapter-logo.png">
   <style>
     body {{
@@ -646,7 +646,7 @@ PAGE = """<!doctype html>
     <header class="app-header">
       <div class="app-brand">
         <img class="app-logo" src="/assets/chapter-logo.png" width="84" height="63" alt="">
-        <h1>Chapter Player for Audiobookshelf</h1>
+        <h1>Chapter Player</h1>
       </div>
     </header>
     {message}

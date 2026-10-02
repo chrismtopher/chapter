@@ -4,6 +4,10 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.9] - 2026-10-02
+
+- Shorten the administration page title and heading to `Chapter Player`.
+
 ## [0.3.8] - 2026-10-02
 
 - Start new and restored players with an empty podcast list so parents explicitly choose every podcast.
