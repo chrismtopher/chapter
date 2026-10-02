@@ -4,7 +4,7 @@
 
 A simple Raspberry Pi friendly Chapter player for Audiobookshelf.
 
-Current release: **[v0.2.1](https://github.com/chrismtopher/chapter/releases/tag/v0.2.1)**
+Current release: **[v0.2.2](https://github.com/chrismtopher/chapter/releases/tag/v0.2.2)**
 
 Chapter Player for Audiobookshelf is an independent third-party project and is not affiliated with or supported by the Audiobookshelf project.
 
@@ -19,7 +19,7 @@ Flash Raspberry Pi OS Lite onto a Raspberry Pi Zero 2 W/WH, enable SSH, and conn
 Then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.1/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.2.2/scripts/install-raspberry-pi.sh | bash
 sudo reboot
 ```
 
