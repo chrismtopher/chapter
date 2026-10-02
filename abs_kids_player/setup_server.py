@@ -1740,11 +1740,9 @@ def render_system_card() -> str:
 def render_settings_card(config: AppConfig) -> str:
     enabled = config.control_click_enabled
     next_value = "0" if enabled else "1"
-    status = "Enabled" if enabled else "Disabled"
     toggle_class = " is-on" if enabled else ""
     aria_pressed = "true" if enabled else "false"
     button_label = "Disable control knob click sound" if enabled else "Enable control knob click sound"
-    library_sort_label = library_sort_mode_label(config.library_sort_mode)
     screen_saver_label = screen_saver_mode_label(config.screen_saver_mode)
     screen_saver_state = f"{screen_saver_label}, {config.screen_saver_dim_percent}% dim level"
     sleep_enabled = config.sleep_timer_enabled
@@ -1774,7 +1772,6 @@ def render_settings_card(config: AppConfig) -> str:
         <div class="settings-row">
           <div>
             <div class="setting-name">Control knob click sound</div>
-            <div class="setting-state">{status}</div>
           </div>
           <form class="toggle-form" method="post" action="/settings/click">
             <input type="hidden" name="enabled" value="{next_value}">
@@ -1786,7 +1783,6 @@ def render_settings_card(config: AppConfig) -> str:
         <div class="settings-row">
           <div>
             <div class="setting-name">Library order</div>
-            <div class="setting-state">{library_sort_label}</div>
           </div>
           <form class="select-form" method="post" action="/settings/library-order">
             <select class="settings-select" name="library_sort_mode" aria-label="Library order">
@@ -1832,12 +1828,10 @@ def render_settings_card(config: AppConfig) -> str:
       </div>
     </section>
     """.format(
-        status=status,
         next_value=next_value,
         toggle_class=toggle_class,
         aria_pressed=aria_pressed,
         button_label=button_label,
-        library_sort_label=html.escape(library_sort_label),
         library_sort_options=render_library_sort_options(config.library_sort_mode),
         screen_saver_state=html.escape(screen_saver_state),
         screen_saver_options=render_screen_saver_options(config.screen_saver_mode),
@@ -1927,10 +1921,6 @@ def render_library_sort_options(selected_mode: str) -> str:
         )
         for value, label in options
     )
-
-
-def library_sort_mode_label(mode: str) -> str:
-    return "Author (last name)" if mode == LIBRARY_SORT_AUTHOR else "Title"
 
 
 def render_screen_saver_dim_options(selected_percent: int) -> str:
