@@ -42,6 +42,7 @@ from abs_kids_player.setup_server import (
     save_podcast_settings,
     save_screen_saver_setting,
     save_sleep_timer_setting,
+    save_spoken_navigation_setting,
     saved_username,
     SetupHandler,
 )
@@ -245,6 +246,11 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn('aria-pressed="false"', disabled)
         self.assertIn("Enable control knob click sound", disabled)
         self.assertIn('name="enabled" value="1"', disabled)
+        self.assertIn('class="setting-name">Spoken navigation</div>', enabled)
+        self.assertIn('action="/settings/spoken-navigation"', enabled)
+        self.assertIn("Enable spoken navigation", enabled)
+        spoken_enabled = render_settings_card(AppConfig(spoken_navigation_enabled=True))
+        self.assertIn("Disable spoken navigation", spoken_enabled)
         self.assertIn('class="setting-name">Library order</div>', enabled)
         self.assertNotIn('class="setting-name">Library order</div>\n            <div class="setting-state">', enabled)
         self.assertIn('action="/settings/library-order"', enabled)
@@ -304,6 +310,25 @@ class SetupServerTest(unittest.TestCase):
         self.assertFalse(updated.control_click_enabled)
         self.assertEqual(updated.screen_saver_mode, SCREEN_SAVER_BOOKS)
         self.assertEqual(updated.podcasts, podcasts)
+        save_config.assert_called_once_with(updated)
+
+    def test_save_spoken_navigation_setting_preserves_other_config(self) -> None:
+        config = AppConfig(
+            server_url="https://books.example.com",
+            token="token",
+            username="chapter",
+            control_click_enabled=False,
+        )
+
+        with (
+            patch("abs_kids_player.setup_server.load_config", return_value=config),
+            patch("abs_kids_player.setup_server.save_config") as save_config,
+        ):
+            updated = save_spoken_navigation_setting(True)
+
+        self.assertTrue(updated.spoken_navigation_enabled)
+        self.assertFalse(updated.control_click_enabled)
+        self.assertEqual(updated.server_url, config.server_url)
         save_config.assert_called_once_with(updated)
 
     def test_save_library_sort_setting_preserves_config_and_resorts_player(self) -> None:
@@ -449,6 +474,19 @@ class SetupServerTest(unittest.TestCase):
             handler.handle_click_setting_post()
 
         save_setting.assert_called_once_with(False)
+        handler.redirect_home.assert_called_once_with()
+
+    def test_spoken_navigation_setting_post_redirects_home_after_save(self) -> None:
+        body = b"enabled=1"
+        handler = object.__new__(SetupHandler)
+        handler.headers = {"Content-Length": str(len(body))}
+        handler.rfile = io.BytesIO(body)
+        handler.redirect_home = Mock()
+
+        with patch("abs_kids_player.setup_server.save_spoken_navigation_setting") as save_setting:
+            handler.handle_spoken_navigation_setting_post()
+
+        save_setting.assert_called_once_with(True)
         handler.redirect_home.assert_called_once_with()
 
     def test_library_sort_setting_post_redirects_home_after_save(self) -> None:

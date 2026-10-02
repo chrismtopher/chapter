@@ -92,6 +92,22 @@ class ApplianceMenuTest(unittest.TestCase):
         self.assertEqual(frame.top, "Matilda")
         self.assertEqual(frame.bottom, "By Roald Dahl")
 
+    def test_spoken_selection_debounces_books_and_names_selected_controls(self) -> None:
+        menu = ApplianceMenu(BOOKS_WITH_HISTORY)
+
+        book_selection = menu.spoken_selection()
+        self.assertEqual(book_selection.text, "The Wild Robot")
+        self.assertGreater(book_selection.delay_seconds, 0)
+
+        menu.click_nav()
+        self.assertEqual(menu.spoken_selection().text, "Continue")
+        self.assertEqual(menu.spoken_selection().delay_seconds, 0)
+
+        menu.set_session(make_session())
+        self.assertEqual(menu.spoken_selection().text, "Pause")
+        menu.rotate_nav(-1)
+        self.assertEqual(menu.spoken_selection().text, "Previous chapter")
+
     def test_library_marks_podcasts_on_home_frame(self) -> None:
         menu = ApplianceMenu([Book("podcast:yoto-daily", "Yoto Daily", "Yoto", 0, "")])
         frame = menu.render()

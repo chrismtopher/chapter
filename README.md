@@ -88,6 +88,7 @@ For a package-style quick start card, open the [PDF](docs/first-boot-quick-start
 - Hold the Select knob for 3 seconds to open the Bluetooth menu.
 - In the Bluetooth menu, turn the Select knob to choose `Enable`, `Disable`, `Pair`, `Unpair`, or `Back`, then click to select.
 - To pair a speaker or headphones, put the device in pairing mode, choose `Pair`, wait for the device list, turn to the device name, and click to connect.
+- Parents can enable `Spoken navigation` on the Settings tab to have the player read highlighted book titles and controls aloud. It is disabled by default.
 
 ## Features
 
@@ -97,6 +98,7 @@ For a package-style quick start card, open the [PDF](docs/first-boot-quick-start
 - Audiobookshelf login through the local setup page
 - Admin web page player controls, including play/pause and volume
 - Configurable library ordering by title or author last name
+- Optional offline spoken navigation for book titles and controls
 - Resume from Audiobookshelf progress
 - Periodic progress sync back to Audiobookshelf
 - Multi-file audiobook playback

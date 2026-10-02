@@ -21,6 +21,7 @@ APT_PACKAGES=(
   python3-gpiozero
   python3-lgpio
   alsa-utils
+  espeak-ng
   gstreamer1.0-alsa
   python3-gi
   python3-gst-1.0

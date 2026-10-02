@@ -1104,6 +1104,7 @@ class OledServiceTest(unittest.TestCase):
         events = queue.SimpleQueue()
         events.put(InputEvent("nav", steps=1))
         clicks = []
+        spoken = []
         menu = ApplianceMenu(
             [
                 Book(id="book-1", title="The Hobbit", author="J.R.R. Tolkien", duration=1, cover_url=""),
@@ -1112,7 +1113,10 @@ class OledServiceTest(unittest.TestCase):
         )
 
         _frame, _percent, _muted, changed, commands, pause_playback, resume_playback = handle_oled_input_events(
-            events, menu, control_click_feedback=lambda: clicks.append("click")
+            events,
+            menu,
+            control_click_feedback=lambda: clicks.append("click"),
+            spoken_navigation_feedback=spoken.append,
         )
 
         self.assertTrue(changed)
@@ -1121,11 +1125,15 @@ class OledServiceTest(unittest.TestCase):
         self.assertFalse(pause_playback)
         self.assertFalse(resume_playback)
         self.assertEqual(menu.render().top, "Matilda")
+        self.assertEqual(spoken[0].text, "Matilda")
+        self.assertGreater(spoken[0].delay_seconds, 0)
 
     def test_nav_click_opens_resume_choice_when_book_has_history(self) -> None:
         events = queue.SimpleQueue()
         events.put(InputEvent("nav_click"))
         clicks = []
+        spoken = []
+        speech_cancels = []
         menu = ApplianceMenu(
             [
                 Book(
@@ -1141,7 +1149,11 @@ class OledServiceTest(unittest.TestCase):
         )
 
         _frame, _percent, _muted, changed, commands, pause_playback, resume_playback = handle_oled_input_events(
-            events, menu, control_click_feedback=lambda: clicks.append("click")
+            events,
+            menu,
+            control_click_feedback=lambda: clicks.append("click"),
+            spoken_navigation_feedback=spoken.append,
+            spoken_navigation_cancel=lambda: speech_cancels.append("cancel"),
         )
 
         self.assertTrue(changed)
@@ -1154,6 +1166,9 @@ class OledServiceTest(unittest.TestCase):
         self.assertEqual(frame.top, "The Hobbit")
         self.assertEqual(frame.options, ("Home", "Continue", "Start over"))
         self.assertEqual(frame.selected_index, 1)
+        self.assertEqual(spoken[0].text, "Continue")
+        self.assertEqual(spoken[0].delay_seconds, 0)
+        self.assertEqual(speech_cancels, ["cancel"])
 
     def test_nav_click_without_history_opens_home_start_choice(self) -> None:
         events = queue.SimpleQueue()

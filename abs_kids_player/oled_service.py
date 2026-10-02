@@ -30,6 +30,7 @@ from .bluetooth_audio import (
     bluetooth_powered,
     connected_bluetooth_audio_device,
     pair_bluetooth_device,
+    preferred_bluetooth_alsa_device,
     scan_bluetooth_devices,
     set_bluetooth_power,
     unpair_connected_bluetooth_audio_device,
@@ -65,6 +66,7 @@ from .rotary_ui import (
     MenuCommand,
     ScreenSaverFrame,
     SplashFrame,
+    SpokenSelection,
     TwoLineFrame,
     VolumeFrame,
     WifiSetupFrame,
@@ -72,6 +74,7 @@ from .rotary_ui import (
     book_is_podcast,
     title_sort_text,
 )
+from .spoken_navigation import SpokenNavigationFeedback
 from .wifi import SETUP_HOTSPOT_SSID, SETUP_HOTSPOT_URL, WifiStatus, wifi_status
 
 
@@ -814,6 +817,7 @@ def run_oled_service(
     signal.signal(signal.SIGTERM, shutdown.request)
     signal.signal(signal.SIGINT, shutdown.request)
     playback = GStreamerPlayback()
+    spoken_navigation = SpokenNavigationFeedback(playback.set_spoken_navigation_ducked)
     amp_shutdown: AmpShutdownPin | None = None
     service_started_at = time.monotonic()
 
@@ -952,6 +956,21 @@ def run_oled_service(
                         control_click_feedback=(
                             lambda: control_click_feedback.click(software_volume, software_muted)
                             if load_config().control_click_enabled
+                            else None
+                        ),
+                        spoken_navigation_feedback=(
+                            lambda selection: spoken_navigation.request(
+                                selection.text,
+                                delay_seconds=selection.delay_seconds,
+                                volume_percent=software_volume,
+                                muted=software_muted,
+                            )
+                            if runtime_config.spoken_navigation_enabled
+                            else None
+                        ),
+                        spoken_navigation_cancel=(
+                            spoken_navigation.cancel
+                            if runtime_config.spoken_navigation_enabled
                             else None
                         ),
                     )
@@ -1161,6 +1180,17 @@ def run_oled_service(
                     books_error_frame = None
                     last_home_load = 0.0
                     playback_loading = False
+                if runtime_config.spoken_navigation_enabled:
+                    speech_output_device = playback.audio_output_device
+                    if (
+                        bluetooth_connected
+                        and not speech_output_device
+                        and spoken_navigation.ready_to_start
+                    ):
+                        speech_output_device = preferred_bluetooth_alsa_device()
+                    spoken_navigation.poll(speech_output_device)
+                else:
+                    spoken_navigation.cancel()
                 if overlay is not None:
                     overlay_frame = overlay
                     overlay_seconds = (
@@ -1369,6 +1399,7 @@ def run_oled_service(
                 traceback.print_exc()
                 sleep_until_shutdown(shutdown, 5.0)
     finally:
+        spoken_navigation.close()
         if amp_shutdown is not None:
             amp_shutdown.close()
         playback.stop()
@@ -1392,6 +1423,8 @@ def handle_oled_input_events(
     bluetooth_enabled: bool = True,
     bluetooth_connected: bool = False,
     control_click_feedback: Callable[[], None] | None = None,
+    spoken_navigation_feedback: Callable[[SpokenSelection], None] | None = None,
+    spoken_navigation_cancel: Callable[[], None] | None = None,
 ) -> tuple[DisplayFrame | None, int, bool, bool, list[MenuCommand], bool, bool]:
     frame: DisplayFrame | None = None
     menu_changed = False
@@ -1407,7 +1440,9 @@ def handle_oled_input_events(
         if event.name == "nav":
             if event.steps and control_click_feedback is not None:
                 control_click_feedback()
+            previous_selection = menu.spoken_selection()
             menu.rotate_nav(event.steps)
+            speak_changed_selection(menu, previous_selection, spoken_navigation_feedback)
             menu_changed = True
             continue
 
@@ -1415,18 +1450,26 @@ def handle_oled_input_events(
             if control_click_feedback is not None:
                 control_click_feedback()
             print("Navigation click received")
+            if spoken_navigation_cancel is not None:
+                spoken_navigation_cancel()
+            previous_selection = menu.spoken_selection()
             commands.extend(menu.click_nav())
+            speak_changed_selection(menu, previous_selection, spoken_navigation_feedback)
             menu_changed = True
             continue
 
         if event.name == "nav_hold":
             print("Navigation hold received")
+            if spoken_navigation_cancel is not None:
+                spoken_navigation_cancel()
+            previous_selection = menu.spoken_selection()
             commands.extend(
                 menu.hold_nav(
                     bluetooth_enabled=bluetooth_enabled,
                     bluetooth_connected=bluetooth_connected,
                 )
             )
+            speak_changed_selection(menu, previous_selection, spoken_navigation_feedback)
             menu_changed = True
             continue
 
@@ -1478,6 +1521,18 @@ def handle_oled_input_events(
                 resume_playback = resume_playback or (was_effectively_muted and not frame.is_muted)
             elif event.name == "show_ip":
                 frame = setup_address_frame()
+
+
+def speak_changed_selection(
+    menu: ApplianceMenu,
+    previous_selection: SpokenSelection | None,
+    feedback: Callable[[SpokenSelection], None] | None,
+) -> None:
+    if feedback is None:
+        return
+    selection = menu.spoken_selection()
+    if selection is not None and selection != previous_selection:
+        feedback(selection)
 
 
 def handle_menu_command(

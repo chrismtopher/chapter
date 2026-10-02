@@ -62,6 +62,7 @@ class AppConfig:
     library_id: str = ""
     username: str = ""
     control_click_enabled: bool = True
+    spoken_navigation_enabled: bool = False
     library_sort_mode: str = LIBRARY_SORT_TITLE
     screen_saver_mode: str = SCREEN_SAVER_CHAPTER
     screen_saver_dim_percent: int = DEFAULT_SCREEN_SAVER_DIM_PERCENT
@@ -92,6 +93,7 @@ def load_config() -> AppConfig:
         library_id=str(data.get("library_id", "")),
         username=str(data.get("username", "")),
         control_click_enabled=bool(data.get("control_click_enabled", True)),
+        spoken_navigation_enabled=bool(data.get("spoken_navigation_enabled", False)),
         library_sort_mode=valid_library_sort_mode(str(data.get("library_sort_mode", ""))),
         screen_saver_mode=valid_screen_saver_mode(str(data.get("screen_saver_mode", ""))),
         screen_saver_dim_percent=valid_screen_saver_dim_percent(data.get("screen_saver_dim_percent")),

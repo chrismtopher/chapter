@@ -5,6 +5,7 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 ## Unreleased
 
 - Added a web setting to order the player library by title or by author last name.
+- Added optional offline spoken navigation for highlighted book titles and controls.
 
 ## [0.1.0] - 2026-10-01
 

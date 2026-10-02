@@ -1143,6 +1143,9 @@ class SetupHandler(BaseHTTPRequestHandler):
         if path == "/settings/click":
             self.handle_click_setting_post()
             return
+        if path == "/settings/spoken-navigation":
+            self.handle_spoken_navigation_setting_post()
+            return
         if path == "/settings/library-order":
             self.handle_library_sort_setting_post()
             return
@@ -1245,6 +1248,13 @@ class SetupHandler(BaseHTTPRequestHandler):
         fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
         enabled = one(fields, "enabled") == "1"
         save_click_setting(enabled)
+        self.redirect_home()
+
+    def handle_spoken_navigation_setting_post(self) -> None:
+        length = int(self.headers.get("Content-Length", "0"))
+        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        enabled = one(fields, "enabled") == "1"
+        save_spoken_navigation_setting(enabled)
         self.redirect_home()
 
     def handle_library_sort_setting_post(self) -> None:
@@ -1543,6 +1553,13 @@ def save_click_setting(enabled: bool) -> AppConfig:
     return updated
 
 
+def save_spoken_navigation_setting(enabled: bool) -> AppConfig:
+    config = load_config()
+    updated = replace(config, spoken_navigation_enabled=enabled)
+    save_config(updated)
+    return updated
+
+
 def save_library_sort_setting(mode: str) -> AppConfig:
     config = load_config()
     updated = replace(config, library_sort_mode=valid_library_sort_mode(mode))
@@ -1743,6 +1760,13 @@ def render_settings_card(config: AppConfig) -> str:
     toggle_class = " is-on" if enabled else ""
     aria_pressed = "true" if enabled else "false"
     button_label = "Disable control knob click sound" if enabled else "Enable control knob click sound"
+    spoken_navigation_enabled = config.spoken_navigation_enabled
+    spoken_navigation_next_value = "0" if spoken_navigation_enabled else "1"
+    spoken_navigation_toggle_class = " is-on" if spoken_navigation_enabled else ""
+    spoken_navigation_aria_pressed = "true" if spoken_navigation_enabled else "false"
+    spoken_navigation_button_label = (
+        "Disable spoken navigation" if spoken_navigation_enabled else "Enable spoken navigation"
+    )
     sleep_enabled = config.sleep_timer_enabled
     sleep_next_value = "0" if sleep_enabled else "1"
     sleep_toggle_class = " is-on" if sleep_enabled else ""
@@ -1774,6 +1798,17 @@ def render_settings_card(config: AppConfig) -> str:
             <input type="hidden" name="enabled" value="{next_value}">
             <button class="toggle-button{toggle_class}" type="submit" aria-pressed="{aria_pressed}">
               <span class="sr-only">{button_label}</span>
+            </button>
+          </form>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="setting-name">Spoken navigation</div>
+          </div>
+          <form class="toggle-form" method="post" action="/settings/spoken-navigation">
+            <input type="hidden" name="enabled" value="{spoken_navigation_next_value}">
+            <button class="toggle-button{spoken_navigation_toggle_class}" type="submit" aria-pressed="{spoken_navigation_aria_pressed}">
+              <span class="sr-only">{spoken_navigation_button_label}</span>
             </button>
           </form>
         </div>
@@ -1827,6 +1862,10 @@ def render_settings_card(config: AppConfig) -> str:
         toggle_class=toggle_class,
         aria_pressed=aria_pressed,
         button_label=button_label,
+        spoken_navigation_next_value=spoken_navigation_next_value,
+        spoken_navigation_toggle_class=spoken_navigation_toggle_class,
+        spoken_navigation_aria_pressed=spoken_navigation_aria_pressed,
+        spoken_navigation_button_label=spoken_navigation_button_label,
         library_sort_options=render_library_sort_options(config.library_sort_mode),
         screen_saver_options=render_screen_saver_options(config.screen_saver_mode),
         screen_saver_dim_options=render_screen_saver_dim_options(config.screen_saver_dim_percent),

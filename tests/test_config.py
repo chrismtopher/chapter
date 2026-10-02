@@ -105,6 +105,14 @@ class ConfigTest(unittest.TestCase):
 
                 self.assertFalse(load_config().control_click_enabled)
 
+    def test_spoken_navigation_is_disabled_by_default_and_can_be_saved(self) -> None:
+        self.assertFalse(AppConfig().spoken_navigation_enabled)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):
+                save_config(AppConfig(spoken_navigation_enabled=True))
+
+                self.assertTrue(load_config().spoken_navigation_enabled)
+
     def test_config_saves_screen_saver_mode(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):

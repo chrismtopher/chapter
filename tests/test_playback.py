@@ -4,7 +4,12 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from abs_kids_player.playback import GStreamerPlayback, SILENCE_VOLUME_FLOOR, smart_resume_rewind_seconds
+from abs_kids_player.playback import (
+    GStreamerPlayback,
+    SILENCE_VOLUME_FLOOR,
+    SPOKEN_NAVIGATION_DUCK_FACTOR,
+    smart_resume_rewind_seconds,
+)
 
 
 class FakePlaybin:
@@ -180,6 +185,19 @@ class PlaybackTest(unittest.TestCase):
         self.assertFalse(playback.muted)
         self.assertAlmostEqual(playback.playbin.properties["volume"], 0.75)
         self.assertNotIn("mute", playback.playbin.properties)
+
+    def test_spoken_navigation_temporarily_ducks_and_restores_playback(self) -> None:
+        playback = GStreamerPlayback()
+        playback.playbin = FakePlaybin()
+        playback.volume_percent = 75
+
+        with patch("abs_kids_player.playback.time.sleep"):
+            playback.set_spoken_navigation_ducked(True)
+            ducked_volume = playback.playbin.properties["volume"]
+            playback.set_spoken_navigation_ducked(False)
+
+        self.assertAlmostEqual(ducked_volume, 0.75 * SPOKEN_NAVIGATION_DUCK_FACTOR)
+        self.assertAlmostEqual(playback.playbin.properties["volume"], 0.75)
 
     def test_muted_volume_sets_effective_gstreamer_volume_to_zero(self) -> None:
         playback = GStreamerPlayback()

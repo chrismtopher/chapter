@@ -311,6 +311,13 @@ SECTION_LETTER_FADE_SECONDS = 0.8
 SECTION_LETTER_MAX_FILL = 255
 IGNORED_TITLE_PREFIX_WORDS = {"a", "the"}
 POWER_OFF_RESUME_REWIND_SECONDS = 10.0
+BOOK_TITLE_SPEECH_DELAY_SECONDS = 0.45
+
+
+@dataclass(frozen=True)
+class SpokenSelection:
+    text: str
+    delay_seconds: float = 0.0
 
 
 class ApplianceMenu:
@@ -656,6 +663,32 @@ class ApplianceMenu:
 
         return TwoLineFrame("Loading", "")
 
+    def spoken_selection(self) -> SpokenSelection | None:
+        if self.screen == Screen.LIBRARY:
+            if not self.books:
+                return None
+            return SpokenSelection(
+                self.books[self.book_index].display_title,
+                delay_seconds=BOOK_TITLE_SPEECH_DELAY_SECONDS,
+            )
+        if self.screen == Screen.STARTUP_RESUME and self.startup_resume_state is not None:
+            return SpokenSelection(("Continue", "Home")[self.startup_resume_index])
+        if self.screen == Screen.RESUME_CHOICE:
+            return SpokenSelection(self.resume_options[self.resume_choice_index])
+        if self.screen == Screen.PLAYING and self.session is not None:
+            return SpokenSelection(spoken_playing_action(self.playing_actions[self.playing_action_index]))
+        if self.screen == Screen.CHAPTER_CONFIRM and self.session is not None:
+            return SpokenSelection("Yes" if self.confirm_yes else "No")
+        if self.screen == Screen.SLEEP_CONFIRM:
+            return SpokenSelection("Yes")
+        if self.screen == Screen.BLUETOOTH:
+            return SpokenSelection(self.bluetooth_options[self.bluetooth_index])
+        if self.screen == Screen.BLUETOOTH_DEVICES:
+            options = self.bluetooth_device_options
+            index = min(self.bluetooth_device_index, max(0, len(options) - 1))
+            return SpokenSelection(options[index][1])
+        return None
+
     @property
     def bluetooth_options(self) -> tuple[str, str, str]:
         return (
@@ -871,6 +904,13 @@ def volume_bar(percent: int, width: int = 12) -> str:
 def author_line(author: str) -> str:
     author = author.strip()
     return f"By {author}" if author else ""
+
+
+def spoken_playing_action(action: str) -> str:
+    return {
+        "Prev": "Previous chapter",
+        "Next": "Next chapter",
+    }.get(action, action)
 
 
 def shorten_device_name(name: str, max_chars: int = BLUETOOTH_DEVICE_NAME_MAX_CHARS) -> str:

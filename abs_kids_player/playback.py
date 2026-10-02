@@ -14,6 +14,7 @@ VOLUME_FADE_SECONDS = 0.35
 VOLUME_FADE_STEPS = 16
 SILENCE_VOLUME_FLOOR = 0.001
 MAX_EFFECTIVE_VOLUME = 1.0
+SPOKEN_NAVIGATION_DUCK_FACTOR = 0.18
 PLAY_START_SETTLE_SECONDS = 0.20
 RESUME_SETTLE_SECONDS = 0.20
 STATE_CHANGE_TIMEOUT_SECONDS = 5
@@ -42,6 +43,7 @@ class GStreamerPlayback:
         self.soft_paused = False
         self.soft_pause_time = 0.0
         self.soft_paused_at = 0.0
+        self.spoken_navigation_ducked = False
         self._sync_lock = threading.Lock()
         self._sync_in_flight = False
         self._audio_lock = threading.Lock()
@@ -62,6 +64,7 @@ class GStreamerPlayback:
         self.soft_paused = False
         self.soft_pause_time = 0.0
         self.soft_paused_at = 0.0
+        self.spoken_navigation_ducked = False
         self.set_output_volume(SILENCE_VOLUME_FLOOR)
         self.load_current_track(apply_audio=False)
         self.set_output_volume(SILENCE_VOLUME_FLOOR)
@@ -83,6 +86,7 @@ class GStreamerPlayback:
         self.soft_paused = False
         self.soft_pause_time = 0.0
         self.soft_paused_at = 0.0
+        self.spoken_navigation_ducked = False
 
     def toggle(self) -> None:
         if self.playbin is None or self.Gst is None:
@@ -369,6 +373,12 @@ class GStreamerPlayback:
         self.muted = muted or self.volume_percent <= 0
         self.apply_audio_state()
 
+    def set_spoken_navigation_ducked(self, ducked: bool) -> None:
+        if self.spoken_navigation_ducked == ducked:
+            return
+        self.spoken_navigation_ducked = ducked
+        self.apply_audio_state()
+
     def apply_audio_state(self) -> None:
         if self.playbin is None:
             return
@@ -388,7 +398,10 @@ class GStreamerPlayback:
     def target_effective_volume(self) -> float:
         if self.muted or self.soft_paused:
             return SILENCE_VOLUME_FLOOR
-        return (self.volume_percent / 100) * MAX_EFFECTIVE_VOLUME
+        target = (self.volume_percent / 100) * MAX_EFFECTIVE_VOLUME
+        if self.spoken_navigation_ducked:
+            target *= SPOKEN_NAVIGATION_DUCK_FACTOR
+        return target
 
     def fade_volume(self, target: float) -> None:
         target = min(max(target, 0.0), MAX_EFFECTIVE_VOLUME)
