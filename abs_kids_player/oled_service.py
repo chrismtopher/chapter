@@ -36,6 +36,8 @@ from .bluetooth_audio import (
 )
 from .config import (
     DEFAULT_SCREEN_SAVER_DIM_PERCENT,
+    LIBRARY_SORT_AUTHOR,
+    LIBRARY_SORT_TITLE,
     SCREEN_SAVER_BOOKS,
     SCREEN_SAVER_CHAPTER,
     SCREEN_SAVER_CLOCK,
@@ -66,6 +68,7 @@ from .rotary_ui import (
     TwoLineFrame,
     VolumeFrame,
     WifiSetupFrame,
+    author_sort_text,
     book_is_podcast,
     title_sort_text,
 )
@@ -318,16 +321,32 @@ def load_library_books(
 
     client = client_from_config(config, client_factory)
     library_id = client.choose_library_id(config.library_id)
-    return sorted_books_for_menu([*client.get_books(library_id), *podcast_books(config.podcasts)])
+    return sorted_books_for_menu(
+        [*client.get_books(library_id), *podcast_books(config.podcasts)],
+        config.library_sort_mode,
+    )
 
 
-def sorted_books_for_menu(books: list[Book]) -> list[Book]:
-    return sorted(books, key=book_menu_sort_key)
+def sorted_books_for_menu(
+    books: list[Book],
+    sort_mode: str = LIBRARY_SORT_TITLE,
+) -> list[Book]:
+    return sorted(books, key=lambda book: book_menu_sort_key(book, sort_mode))
 
 
-def book_menu_sort_key(book: Book) -> tuple[str, str, str]:
+def book_menu_sort_key(
+    book: Book,
+    sort_mode: str = LIBRARY_SORT_TITLE,
+) -> tuple[str, str, str, str]:
     title = book.display_title
-    return (title_sort_text(title), title.casefold(), book.author.casefold())
+    if sort_mode == LIBRARY_SORT_AUTHOR:
+        return (
+            author_sort_text(book.author) or "\uffff",
+            book.author.casefold(),
+            title_sort_text(title),
+            title.casefold(),
+        )
+    return (title_sort_text(title), title.casefold(), book.author.casefold(), "")
 
 
 def book_load_result(
@@ -728,6 +747,19 @@ def handle_web_player_commands(
             refresh_library = True
             continue
 
+        if command.action == "resort_library":
+            selected_book_id = menu.books[menu.book_index].id if menu.books else ""
+            sort_mode = load_config().library_sort_mode
+            menu.set_library_sort_mode(sort_mode)
+            menu.set_books(sorted_books_for_menu(menu.books, sort_mode))
+            if selected_book_id:
+                menu.book_index = next(
+                    (index for index, book in enumerate(menu.books) if book.id == selected_book_id),
+                    menu.book_index,
+                )
+            changed = True
+            continue
+
         if command.action == "pause":
             if playback.is_playing:
                 playback.pause(sync=True)
@@ -829,7 +861,10 @@ def run_oled_service(
 
         startup_config = load_config()
         runtime_config = startup_config
-        menu = ApplianceMenu(load_cached_books(startup_config))
+        menu = ApplianceMenu(
+            sorted_books_for_menu(load_cached_books(startup_config), startup_config.library_sort_mode),
+            library_sort_mode=startup_config.library_sort_mode,
+        )
         menu.set_bluetooth_enabled(False)
         menu.set_bluetooth_connected(False)
         menu.set_startup_resume(load_player_state())
@@ -1262,6 +1297,7 @@ def run_oled_service(
                             books_error_frame = setup_address_frame()
                         else:
                             book_load_in_progress = True
+                            menu.set_library_sort_mode(config.library_sort_mode)
                             start_book_load_worker(
                                 config,
                                 book_load_results,

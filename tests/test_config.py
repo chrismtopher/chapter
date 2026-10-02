@@ -8,6 +8,8 @@ from unittest.mock import patch
 from abs_kids_player.config import (
     DEFAULT_SCREEN_SAVER_DIM_PERCENT,
     DEFAULT_SLEEP_TIMER_MINUTES,
+    LIBRARY_SORT_AUTHOR,
+    LIBRARY_SORT_TITLE,
     MAX_SLEEP_TIMER_MINUTES,
     SCREEN_SAVER_BOOKS,
     SCREEN_SAVER_CHAPTER,
@@ -19,12 +21,25 @@ from abs_kids_player.config import (
     save_config,
     saved_auth_tokens,
     update_auth_tokens,
+    valid_library_sort_mode,
     valid_screen_saver_dim_percent,
     valid_sleep_timer_minutes,
 )
 
 
 class ConfigTest(unittest.TestCase):
+    def test_library_sort_defaults_to_title_and_validates_modes(self) -> None:
+        self.assertEqual(AppConfig().library_sort_mode, LIBRARY_SORT_TITLE)
+        self.assertEqual(valid_library_sort_mode(LIBRARY_SORT_AUTHOR), LIBRARY_SORT_AUTHOR)
+        self.assertEqual(valid_library_sort_mode("unknown"), LIBRARY_SORT_TITLE)
+
+    def test_config_saves_library_sort_mode(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):
+                save_config(AppConfig(library_sort_mode=LIBRARY_SORT_AUTHOR))
+
+                self.assertEqual(load_config().library_sort_mode, LIBRARY_SORT_AUTHOR)
+
     def test_config_saves_refresh_token_and_rotates_matching_login(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             with patch.dict("os.environ", {"ABS_KIDS_PLAYER_CONFIG_DIR": temp_dir}, clear=False):

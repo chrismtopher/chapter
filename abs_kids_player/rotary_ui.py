@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from enum import Enum
 from typing import Union
 
+from .config import LIBRARY_SORT_AUTHOR, LIBRARY_SORT_TITLE, valid_library_sort_mode
 from .models import Book, Chapter, PlaybackSession
 from .player_state import LastPlaybackState
 
@@ -312,8 +314,13 @@ POWER_OFF_RESUME_REWIND_SECONDS = 10.0
 
 
 class ApplianceMenu:
-    def __init__(self, books: list[Book] | None = None) -> None:
+    def __init__(
+        self,
+        books: list[Book] | None = None,
+        library_sort_mode: str = LIBRARY_SORT_TITLE,
+    ) -> None:
         self.books = books or []
+        self.library_sort_mode = valid_library_sort_mode(library_sort_mode)
         self.screen = Screen.LIBRARY
         self.book_index = 0
         self.resume_choice_index = 0
@@ -349,6 +356,10 @@ class ApplianceMenu:
         if not books:
             self.clear_section_letter()
             self.screen = Screen.LIBRARY
+
+    def set_library_sort_mode(self, mode: str) -> None:
+        self.library_sort_mode = valid_library_sort_mode(mode)
+        self.clear_section_letter()
 
     def reset_to_library(self) -> None:
         self.session = None
@@ -753,7 +764,12 @@ class ApplianceMenu:
         if not self.books:
             self.clear_section_letter()
             return
-        self.section_letter = title_section_letter(self.books[self.book_index].display_title)
+        book = self.books[self.book_index]
+        self.section_letter = (
+            author_section_letter(book.author)
+            if self.library_sort_mode == LIBRARY_SORT_AUTHOR
+            else title_section_letter(book.display_title)
+        )
         self.section_letter_fill = SECTION_LETTER_MAX_FILL
         self._section_letter_elapsed = 0.0
 
@@ -882,6 +898,24 @@ def title_sort_text(title: str) -> str:
     if not sortable_words:
         sortable_words = words
     return " ".join(sortable_words).casefold()
+
+
+def author_sort_text(author: str) -> str:
+    clean_author = " ".join(author.split())
+    if not clean_author:
+        return ""
+    primary_author = re.split(r"\s*(?:,|;|&|\band\b)\s*", clean_author, maxsplit=1, flags=re.IGNORECASE)[0]
+    name_parts = primary_author.split()
+    if not name_parts:
+        return ""
+    last_name = name_parts[-1].strip(".,")
+    given_names = " ".join(name_parts[:-1])
+    return f"{last_name} {given_names}".strip().casefold()
+
+
+def author_section_letter(author: str) -> str:
+    sort_text = author_sort_text(author)
+    return section_letter_for_word(sort_text) if sort_text else "#"
 
 
 def title_words(title: str) -> list[str]:

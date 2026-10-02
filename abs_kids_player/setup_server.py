@@ -16,6 +16,8 @@ from . import __version__
 from .api import AudiobookshelfClient, AudiobookshelfError, client_from_config
 from .bluetooth_audio import connected_bluetooth_audio_device
 from .config import (
+    LIBRARY_SORT_AUTHOR,
+    LIBRARY_SORT_TITLE,
     MAX_SLEEP_TIMER_MINUTES,
     MIN_SLEEP_TIMER_MINUTES,
     SCREEN_SAVER_BOOKS,
@@ -26,6 +28,7 @@ from .config import (
     PodcastConfig,
     load_config,
     save_config,
+    valid_library_sort_mode,
     valid_screen_saver_dim_percent,
     valid_screen_saver_mode,
     valid_sleep_timer_minutes,
@@ -1140,6 +1143,9 @@ class SetupHandler(BaseHTTPRequestHandler):
         if path == "/settings/click":
             self.handle_click_setting_post()
             return
+        if path == "/settings/library-order":
+            self.handle_library_sort_setting_post()
+            return
         if path == "/settings/screensaver":
             self.handle_screen_saver_setting_post()
             return
@@ -1239,6 +1245,12 @@ class SetupHandler(BaseHTTPRequestHandler):
         fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
         enabled = one(fields, "enabled") == "1"
         save_click_setting(enabled)
+        self.redirect_home()
+
+    def handle_library_sort_setting_post(self) -> None:
+        length = int(self.headers.get("Content-Length", "0"))
+        fields = parse_qs(self.rfile.read(length).decode("utf-8"), keep_blank_values=True)
+        save_library_sort_setting(one(fields, "library_sort_mode"))
         self.redirect_home()
 
     def handle_screen_saver_setting_post(self) -> None:
@@ -1531,6 +1543,14 @@ def save_click_setting(enabled: bool) -> AppConfig:
     return updated
 
 
+def save_library_sort_setting(mode: str) -> AppConfig:
+    config = load_config()
+    updated = replace(config, library_sort_mode=valid_library_sort_mode(mode))
+    save_config(updated)
+    queue_web_player_command("resort_library")
+    return updated
+
+
 def save_screen_saver_setting(mode: str, dim_percent: int | None = None) -> AppConfig:
     config = load_config()
     updated = replace(
@@ -1724,6 +1744,7 @@ def render_settings_card(config: AppConfig) -> str:
     toggle_class = " is-on" if enabled else ""
     aria_pressed = "true" if enabled else "false"
     button_label = "Disable control knob click sound" if enabled else "Enable control knob click sound"
+    library_sort_label = library_sort_mode_label(config.library_sort_mode)
     screen_saver_label = screen_saver_mode_label(config.screen_saver_mode)
     screen_saver_state = f"{screen_saver_label}, {config.screen_saver_dim_percent}% dim level"
     sleep_enabled = config.sleep_timer_enabled
@@ -1760,6 +1781,18 @@ def render_settings_card(config: AppConfig) -> str:
             <button class="toggle-button{toggle_class}" type="submit" aria-pressed="{aria_pressed}">
               <span class="sr-only">{button_label}</span>
             </button>
+          </form>
+        </div>
+        <div class="settings-row">
+          <div>
+            <div class="setting-name">Library order</div>
+            <div class="setting-state">{library_sort_label}</div>
+          </div>
+          <form class="select-form" method="post" action="/settings/library-order">
+            <select class="settings-select" name="library_sort_mode" aria-label="Library order">
+              {library_sort_options}
+            </select>
+            <button class="small-button secondary" type="submit">Save</button>
           </form>
         </div>
         <div class="settings-row screen-saver-row">
@@ -1804,6 +1837,8 @@ def render_settings_card(config: AppConfig) -> str:
         toggle_class=toggle_class,
         aria_pressed=aria_pressed,
         button_label=button_label,
+        library_sort_label=html.escape(library_sort_label),
+        library_sort_options=render_library_sort_options(config.library_sort_mode),
         screen_saver_state=html.escape(screen_saver_state),
         screen_saver_options=render_screen_saver_options(config.screen_saver_mode),
         screen_saver_dim_options=render_screen_saver_dim_options(config.screen_saver_dim_percent),
@@ -1877,6 +1912,25 @@ def render_screen_saver_options(selected_mode: str) -> str:
         )
         for value, label in options
     )
+
+
+def render_library_sort_options(selected_mode: str) -> str:
+    options = (
+        (LIBRARY_SORT_TITLE, "Title"),
+        (LIBRARY_SORT_AUTHOR, "Author (last name)"),
+    )
+    return "\n".join(
+        '<option value="{value}"{selected}>{label}</option>'.format(
+            value=value,
+            selected=" selected" if value == selected_mode else "",
+            label=label,
+        )
+        for value, label in options
+    )
+
+
+def library_sort_mode_label(mode: str) -> str:
+    return "Author (last name)" if mode == LIBRARY_SORT_AUTHOR else "Title"
 
 
 def render_screen_saver_dim_options(selected_percent: int) -> str:

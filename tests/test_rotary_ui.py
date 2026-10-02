@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 
+from abs_kids_player.config import LIBRARY_SORT_AUTHOR
 from abs_kids_player.models import AudioTrack, Book, Chapter, PlaybackSession
 from abs_kids_player.player_state import LastPlaybackState
 from abs_kids_player.rotary_ui import (
@@ -19,6 +20,8 @@ from abs_kids_player.rotary_ui import (
     StartupResumeFrame,
     VolumeFrame,
     author_line,
+    author_section_letter,
+    author_sort_text,
     marquee_text,
     power_off_resume_time,
     title_sort_text,
@@ -154,6 +157,13 @@ class ApplianceMenuTest(unittest.TestCase):
         self.assertIsInstance(faded, HomeFrame)
         self.assertEqual(faded.section_letter, "")
         self.assertEqual(faded.section_letter_fill, 0)
+
+    def test_author_order_scroll_uses_last_name_section_letter(self) -> None:
+        menu = ApplianceMenu(BOOKS, library_sort_mode=LIBRARY_SORT_AUTHOR)
+
+        menu.rotate_nav(1)
+
+        self.assertEqual(menu.render().section_letter, "D")
 
     def test_title_click_without_history_opens_home_start_choice(self) -> None:
         menu = ApplianceMenu(BOOKS)
@@ -631,6 +641,14 @@ class ApplianceMenuTest(unittest.TestCase):
         self.assertEqual(title_sort_text("The A Team"), "team")
         self.assertEqual(title_sort_text("Theodore Boone"), "theodore boone")
         self.assertEqual(title_sort_text("Anansi Boys"), "anansi boys")
+
+    def test_author_sort_text_uses_first_authors_last_name(self) -> None:
+        self.assertEqual(author_sort_text("J.R.R. Tolkien"), "tolkien j.r.r.")
+        self.assertEqual(author_sort_text("Mary Pope Osborne"), "osborne mary pope")
+        self.assertEqual(author_sort_text("Neil Gaiman & Terry Pratchett"), "gaiman neil")
+        self.assertEqual(author_sort_text("Dahl, Roald"), "dahl")
+        self.assertEqual(author_sort_text(""), "")
+        self.assertEqual(author_section_letter("Madeleine L'Engle"), "L")
 
     def test_marquee_text_scrolls_with_gap(self) -> None:
         self.assertEqual(marquee_text("Long title", 4, 0), "Long")

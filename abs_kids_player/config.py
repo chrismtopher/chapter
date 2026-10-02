@@ -15,6 +15,9 @@ SCREEN_SAVER_CHAPTER = "chapter"
 SCREEN_SAVER_BOOKS = "books"
 SCREEN_SAVER_CLOCK = "clock"
 SCREEN_SAVER_MODES = (SCREEN_SAVER_CHAPTER, SCREEN_SAVER_BOOKS, SCREEN_SAVER_CLOCK)
+LIBRARY_SORT_TITLE = "title"
+LIBRARY_SORT_AUTHOR = "author"
+LIBRARY_SORT_MODES = (LIBRARY_SORT_TITLE, LIBRARY_SORT_AUTHOR)
 SCREEN_SAVER_DIM_LEVELS = (10, 15, 20, 25, 35, 50)
 DEFAULT_SCREEN_SAVER_DIM_PERCENT = 15
 DEFAULT_SLEEP_TIMER_MINUTES = 30
@@ -59,6 +62,7 @@ class AppConfig:
     library_id: str = ""
     username: str = ""
     control_click_enabled: bool = True
+    library_sort_mode: str = LIBRARY_SORT_TITLE
     screen_saver_mode: str = SCREEN_SAVER_CHAPTER
     screen_saver_dim_percent: int = DEFAULT_SCREEN_SAVER_DIM_PERCENT
     sleep_timer_enabled: bool = False
@@ -88,6 +92,7 @@ def load_config() -> AppConfig:
         library_id=str(data.get("library_id", "")),
         username=str(data.get("username", "")),
         control_click_enabled=bool(data.get("control_click_enabled", True)),
+        library_sort_mode=valid_library_sort_mode(str(data.get("library_sort_mode", ""))),
         screen_saver_mode=valid_screen_saver_mode(str(data.get("screen_saver_mode", ""))),
         screen_saver_dim_percent=valid_screen_saver_dim_percent(data.get("screen_saver_dim_percent")),
         sleep_timer_enabled=bool(data.get("sleep_timer_enabled", False)),
@@ -158,6 +163,10 @@ def config_path() -> Path:
 
 def valid_screen_saver_mode(value: str) -> str:
     return value if value in SCREEN_SAVER_MODES else SCREEN_SAVER_CHAPTER
+
+
+def valid_library_sort_mode(value: str) -> str:
+    return value if value in LIBRARY_SORT_MODES else LIBRARY_SORT_TITLE
 
 
 def valid_screen_saver_dim_percent(value: object) -> int:

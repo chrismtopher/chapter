@@ -9,6 +9,7 @@ from unittest.mock import patch
 from abs_kids_player.api import AudiobookshelfError
 from abs_kids_player.config import (
     DEFAULT_SCREEN_SAVER_DIM_PERCENT,
+    LIBRARY_SORT_AUTHOR,
     SCREEN_SAVER_BOOKS,
     SCREEN_SAVER_CLOCK,
     AppConfig,
@@ -370,6 +371,22 @@ class OledServiceTest(unittest.TestCase):
 
         self.assertEqual([book.display_title for book in books], ["Matilda", "Zebra Tales: Book Two"])
 
+    def test_sorted_books_for_menu_can_order_by_author_last_name(self) -> None:
+        books = sorted_books_for_menu(
+            [
+                Book(id="book-1", title="The Hobbit", author="J.R.R. Tolkien", duration=1, cover_url=""),
+                Book(id="book-2", title="Matilda", author="Roald Dahl", duration=1, cover_url=""),
+                Book(id="book-3", title="A Bear Called Paddington", author="Michael Bond", duration=1, cover_url=""),
+                Book(id="book-4", title="Mystery Book", author="", duration=1, cover_url=""),
+            ],
+            LIBRARY_SORT_AUTHOR,
+        )
+
+        self.assertEqual(
+            [book.title for book in books],
+            ["A Bear Called Paddington", "Matilda", "The Hobbit", "Mystery Book"],
+        )
+
     def test_book_load_result_turns_audiobookshelf_error_into_display_frame(self) -> None:
         result = book_load_result(
             AppConfig(server_url="https://books.example.com", token="token", library_id="library-1"),
@@ -510,6 +527,44 @@ class OledServiceTest(unittest.TestCase):
                 self.assertFalse(menu.books)
                 self.assertIsNone(load_player_state())
                 self.assertEqual((volume, muted), (50, False))
+
+    def test_web_resort_library_command_keeps_playback_running(self) -> None:
+        menu = ApplianceMenu(
+            [
+                Book("book-1", "The Hobbit", "J.R.R. Tolkien", 300, ""),
+                Book("book-2", "Matilda", "Roald Dahl", 300, ""),
+            ]
+        )
+        session = make_playback_session()
+        playback = FakePlayback(session)
+        playback.is_playing = True
+        menu.set_session(session, is_playing=True)
+
+        with tempfile.TemporaryDirectory() as directory:
+            command_path = str(Path(directory) / "commands.json")
+            with (
+                patch.dict("os.environ", {"ABS_KIDS_PLAYER_WEB_COMMANDS_PATH": command_path}),
+                patch(
+                    "abs_kids_player.oled_service.load_config",
+                    return_value=AppConfig(library_sort_mode=LIBRARY_SORT_AUTHOR),
+                ),
+            ):
+                queue_web_player_command("resort_library")
+                volume, muted, changed, refresh_library = handle_web_player_commands(
+                    playback,
+                    menu,
+                    50,
+                    False,
+                )
+
+        self.assertTrue(changed)
+        self.assertFalse(refresh_library)
+        self.assertEqual([book.title for book in menu.books], ["Matilda", "The Hobbit"])
+        self.assertEqual(menu.library_sort_mode, LIBRARY_SORT_AUTHOR)
+        self.assertTrue(playback.is_playing)
+        self.assertEqual(playback.pause_calls, 0)
+        self.assertEqual(playback.stop_calls, 0)
+        self.assertEqual((volume, muted), (50, False))
 
     def test_home_title_does_not_scroll_before_delay(self) -> None:
         frame = HomeFrame("A Very Long Audiobook Title", "Author")

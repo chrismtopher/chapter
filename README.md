@@ -96,6 +96,7 @@ For a package-style quick start card, open the [PDF](docs/first-boot-quick-start
 - Internal speaker playback through GStreamer
 - Audiobookshelf login through the local setup page
 - Admin web page player controls, including play/pause and volume
+- Configurable library ordering by title or author last name
 - Resume from Audiobookshelf progress
 - Periodic progress sync back to Audiobookshelf
 - Multi-file audiobook playback

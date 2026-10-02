@@ -5,7 +5,14 @@ import unittest
 from unittest.mock import Mock, patch
 
 from abs_kids_player import __version__
-from abs_kids_player.config import SCREEN_SAVER_BOOKS, SCREEN_SAVER_CLOCK, AppConfig, PodcastConfig
+from abs_kids_player.config import (
+    LIBRARY_SORT_AUTHOR,
+    LIBRARY_SORT_TITLE,
+    SCREEN_SAVER_BOOKS,
+    SCREEN_SAVER_CLOCK,
+    AppConfig,
+    PodcastConfig,
+)
 from abs_kids_player.bluetooth_audio import BluetoothDevice
 from abs_kids_player.player_control import WebPlayerStatus
 from abs_kids_player.setup_server import (
@@ -31,6 +38,7 @@ from abs_kids_player.setup_server import (
     schedule_system_reset,
     schedule_wifi_forget,
     save_click_setting,
+    save_library_sort_setting,
     save_podcast_settings,
     save_screen_saver_setting,
     save_sleep_timer_setting,
@@ -238,6 +246,13 @@ class SetupServerTest(unittest.TestCase):
         self.assertIn('aria-pressed="false"', disabled)
         self.assertIn("Enable control knob click sound", disabled)
         self.assertIn('name="enabled" value="1"', disabled)
+        self.assertIn('class="setting-name">Library order</div>', enabled)
+        self.assertIn('action="/settings/library-order"', enabled)
+        self.assertIn('<option value="title" selected>Title</option>', enabled)
+
+        author_order = render_settings_card(AppConfig(library_sort_mode=LIBRARY_SORT_AUTHOR))
+        self.assertIn('class="setting-state">Author (last name)</div>', author_order)
+        self.assertIn('<option value="author" selected>Author (last name)</option>', author_order)
         self.assertIn('class="setting-name">Screen saver</div>', enabled)
         self.assertIn('action="/settings/screensaver"', enabled)
         self.assertIn('aria-label="Screen saver dim level"', enabled)
@@ -291,6 +306,27 @@ class SetupServerTest(unittest.TestCase):
         self.assertEqual(updated.screen_saver_mode, SCREEN_SAVER_BOOKS)
         self.assertEqual(updated.podcasts, podcasts)
         save_config.assert_called_once_with(updated)
+
+    def test_save_library_sort_setting_preserves_config_and_resorts_player(self) -> None:
+        config = AppConfig(
+            server_url="https://books.example.com",
+            token="token",
+            username="chapter",
+            library_sort_mode=LIBRARY_SORT_TITLE,
+        )
+
+        with (
+            patch("abs_kids_player.setup_server.load_config", return_value=config),
+            patch("abs_kids_player.setup_server.save_config") as save_config,
+            patch("abs_kids_player.setup_server.queue_web_player_command") as queue_command,
+        ):
+            updated = save_library_sort_setting(LIBRARY_SORT_AUTHOR)
+
+        self.assertEqual(updated.library_sort_mode, LIBRARY_SORT_AUTHOR)
+        self.assertEqual(updated.server_url, config.server_url)
+        self.assertEqual(updated.token, config.token)
+        save_config.assert_called_once_with(updated)
+        queue_command.assert_called_once_with("resort_library")
 
     def test_save_screen_saver_setting_preserves_login_config(self) -> None:
         podcasts = [PodcastConfig(url="https://podcasts.apple.com/us/podcast/example/id123", title="Example")]
@@ -414,6 +450,19 @@ class SetupServerTest(unittest.TestCase):
             handler.handle_click_setting_post()
 
         save_setting.assert_called_once_with(False)
+        handler.redirect_home.assert_called_once_with()
+
+    def test_library_sort_setting_post_redirects_home_after_save(self) -> None:
+        body = b"library_sort_mode=author"
+        handler = object.__new__(SetupHandler)
+        handler.headers = {"Content-Length": str(len(body))}
+        handler.rfile = io.BytesIO(body)
+        handler.redirect_home = Mock()
+
+        with patch("abs_kids_player.setup_server.save_library_sort_setting") as save_setting:
+            handler.handle_library_sort_setting_post()
+
+        save_setting.assert_called_once_with(LIBRARY_SORT_AUTHOR)
         handler.redirect_home.assert_called_once_with()
 
     def test_screen_saver_setting_post_redirects_home_after_save(self) -> None:
