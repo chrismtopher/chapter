@@ -4,6 +4,10 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.10] - 2026-10-03
+
+- Install and immediately enable BlueALSA so Bluetooth speakers and headphones work on clean Raspberry Pi OS Lite installations and after software updates.
+
 ## [0.3.9] - 2026-10-02
 
 - Shorten the administration page title and heading to `Chapter Player`.

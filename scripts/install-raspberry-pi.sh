@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_URL="${CHAPTER_REPO_URL:-https://github.com/chrismtopher/chapter.git}"
-RELEASE_REF="${CHAPTER_RELEASE_REF:-v0.3.9}"
+RELEASE_REF="${CHAPTER_RELEASE_REF:-v0.3.10}"
 INSTALL_USER="${CHAPTER_INSTALL_USER:-chapter}"
 INSTALL_DIR="${CHAPTER_INSTALL_DIR:-}"
 ASSUME_YES=0
@@ -33,6 +33,7 @@ APT_PACKAGES=(
   gstreamer1.0-libav
   dnsmasq-base
   bluez
+  bluez-alsa-utils
 )
 
 SERVICES=(
@@ -343,6 +344,7 @@ install_services() {
 
   sudo_run systemctl daemon-reload
   sudo_run systemctl enable "${SERVICES[@]}"
+  sudo_run systemctl enable --now bluealsa.service
   rm -rf "$tmpdir"
 }
 
