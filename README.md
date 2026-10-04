@@ -4,7 +4,7 @@
 
 A simple Raspberry Pi friendly Chapter player for Audiobookshelf.
 
-Current release: **[v0.3.10](https://github.com/chrismtopher/chapter/releases/tag/v0.3.10)**
+Current release: **[v0.3.11](https://github.com/chrismtopher/chapter/releases/tag/v0.3.11)**
 
 Chapter Player for Audiobookshelf is an independent third-party project and is not affiliated with or supported by the Audiobookshelf project.
 
@@ -19,7 +19,7 @@ Flash Raspberry Pi OS Lite onto a Raspberry Pi Zero 2 W/WH, enable SSH, and conn
 Then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.10/scripts/install-raspberry-pi.sh | bash
+curl -fsSL https://raw.githubusercontent.com/chrismtopher/chapter/v0.3.11/scripts/install-raspberry-pi.sh | bash
 sudo reboot
 ```
 
@@ -92,6 +92,7 @@ For a package-style quick start card, open the [PDF](docs/first-boot-quick-start
 - In the Bluetooth menu, turn the Select knob to choose `Enable`, `Disable`, `Pair`, `Unpair`, or `Back`, then click to select.
 - To pair a speaker or headphones, put the device in pairing mode, choose `Pair`, wait for the device list, turn to the device name, and click to connect.
 - Parents can enable `Spoken navigation` on the Settings tab to have the player read highlighted book titles and controls aloud. It is disabled by default.
+- With spoken navigation enabled, Volume-knob changes are announced at 10% intervals, volume stops at 10%, and pressing the Volume knob does not mute the player.
 
 ## Features
 

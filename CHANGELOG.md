@@ -4,6 +4,11 @@ All notable changes to Chapter Player for Audiobookshelf are documented here.
 
 ## Unreleased
 
+## [0.3.11] - 2026-10-04
+
+- Announce Volume-knob adjustments at 10% intervals when spoken navigation is enabled.
+- Keep Volume-knob adjustments at or above 10% and ignore the knob's mute press while spoken navigation is enabled.
+
 ## [0.3.10] - 2026-10-03
 
 - Install and immediately enable BlueALSA so Bluetooth speakers and headphones work on clean Raspberry Pi OS Lite installations and after software updates.

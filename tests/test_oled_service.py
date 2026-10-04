@@ -1372,6 +1372,74 @@ class OledServiceTest(unittest.TestCase):
         self.assertTrue(pause_playback)
         self.assertFalse(resume_playback)
 
+    def test_spoken_navigation_announces_volume_at_ten_percent_intervals(self) -> None:
+        events = queue.SimpleQueue()
+        events.put(InputEvent("volume", steps=1))
+        events.put(InputEvent("volume", steps=1))
+        menu = ApplianceMenu()
+        spoken = []
+
+        frame, percent, muted, _changed, _commands, pause_playback, resume_playback = handle_oled_input_events(
+            events,
+            menu,
+            fallback_percent=50,
+            fallback_muted=False,
+            software_volume_only=True,
+            spoken_navigation_feedback=spoken.append,
+        )
+
+        self.assertIsInstance(frame, VolumeFrame)
+        self.assertEqual(percent, 60)
+        self.assertFalse(muted)
+        self.assertFalse(pause_playback)
+        self.assertFalse(resume_playback)
+        self.assertEqual([selection.text for selection in spoken], ["Volume 60 percent"])
+
+    def test_spoken_navigation_volume_stops_at_ten_percent(self) -> None:
+        events = queue.SimpleQueue()
+        events.put(InputEvent("volume", steps=-1))
+        menu = ApplianceMenu()
+        spoken = []
+
+        frame, percent, muted, _changed, _commands, pause_playback, resume_playback = handle_oled_input_events(
+            events,
+            menu,
+            fallback_percent=10,
+            fallback_muted=False,
+            software_volume_only=True,
+            spoken_navigation_feedback=spoken.append,
+        )
+
+        self.assertIsInstance(frame, VolumeFrame)
+        self.assertEqual(percent, 10)
+        self.assertFalse(muted)
+        self.assertFalse(pause_playback)
+        self.assertFalse(resume_playback)
+        self.assertEqual(spoken, [])
+
+    def test_spoken_navigation_ignores_volume_knob_mute_click(self) -> None:
+        events = queue.SimpleQueue()
+        events.put(InputEvent("volume_click"))
+        menu = ApplianceMenu()
+        spoken = []
+
+        with patch("abs_kids_player.oled_service.toggle_mute") as toggle:
+            frame, percent, muted, _changed, _commands, pause_playback, resume_playback = handle_oled_input_events(
+                events,
+                menu,
+                fallback_percent=50,
+                fallback_muted=False,
+                spoken_navigation_feedback=spoken.append,
+            )
+
+        toggle.assert_not_called()
+        self.assertIsInstance(frame, VolumeFrame)
+        self.assertEqual(percent, 50)
+        self.assertFalse(muted)
+        self.assertFalse(pause_playback)
+        self.assertFalse(resume_playback)
+        self.assertEqual(spoken, [])
+
     def test_volume_zero_requests_playback_pause(self) -> None:
         events = queue.SimpleQueue()
         events.put(InputEvent("volume", steps=-1))

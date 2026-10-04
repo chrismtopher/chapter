@@ -102,6 +102,8 @@ DEFAULT_RUNTIME_CONFIG_REFRESH_SECONDS = 1.0
 DEFAULT_SOFTWARE_UPDATE_REFRESH_SECONDS = 0.2
 DEFAULT_WAKE_INPUT_QUIET_SECONDS = 0.35
 VOLUME_STEP_PERCENT = 5
+SPOKEN_VOLUME_INTERVAL_PERCENT = 10
+SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT = 10
 BOOK_LOADING_FRAME = TwoLineFrame("Grabbing that book", "from the shelf...")
 BLUETOOTH_PAIRING_FRAME = TwoLineFrame("Pair Bluetooth", "Put device in pair mode")
 BLUETOOTH_POWER_FRAME = TwoLineFrame("Bluetooth", "Updating...")
@@ -1481,6 +1483,7 @@ def handle_oled_input_events(
     commands = []
     pause_playback = False
     resume_playback = False
+    spoken_navigation_enabled = spoken_navigation_feedback is not None
     while True:
         try:
             event = events.get_nowait()
@@ -1524,27 +1527,70 @@ def handle_oled_input_events(
             continue
 
         was_effectively_muted = effective_muted(fallback_percent, fallback_muted)
+        previous_percent = fallback_percent
         if software_volume_only and event.name in {"volume", "volume_click"}:
-            state = software_volume_state_for_event(event, fallback_percent, fallback_muted)
+            mute_blocked = (
+                event.name == "volume_click"
+                and spoken_navigation_enabled
+                and not was_effectively_muted
+            )
+            if mute_blocked:
+                state = VolumeState(
+                    percent=max(fallback_percent, SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT),
+                    muted=False,
+                )
+            else:
+                state = software_volume_state_for_event(event, fallback_percent, fallback_muted)
+            if spoken_navigation_enabled and state.percent < SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT:
+                state = VolumeState(percent=SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT, muted=False)
             fallback_percent = state.percent
             fallback_muted = state.muted
             frame = volume_frame_for_state(state)
             pause_playback = pause_playback or (not was_effectively_muted and frame.is_muted)
             resume_playback = resume_playback or (was_effectively_muted and not frame.is_muted)
+            if not mute_blocked:
+                speak_volume_state(
+                    frame,
+                    event.name,
+                    was_effectively_muted,
+                    previous_percent,
+                    spoken_navigation_feedback,
+                )
             continue
 
+        mute_blocked = False
         try:
             if event.name == "volume":
-                state = change_volume(event.steps, controls=mixer_controls)
+                if (
+                    spoken_navigation_enabled
+                    and fallback_percent <= SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT
+                    and event.steps < 0
+                ):
+                    state = VolumeState(percent=SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT, muted=False)
+                else:
+                    state = change_volume(event.steps, controls=mixer_controls)
+                    if spoken_navigation_enabled and state.percent < SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT:
+                        correction_steps = max(
+                            1,
+                            math.ceil((SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT - state.percent) / VOLUME_STEP_PERCENT),
+                        )
+                        state = change_volume(correction_steps, controls=mixer_controls)
                 fallback_percent = state.percent
                 fallback_muted = state.muted
                 frame = volume_frame_for_state(state)
                 pause_playback = pause_playback or (not was_effectively_muted and frame.is_muted)
                 resume_playback = resume_playback or (was_effectively_muted and not frame.is_muted)
             elif event.name == "volume_click":
-                state = toggle_mute(controls=mixer_controls)
-                if was_effectively_muted and effective_muted(state.percent, state.muted):
-                    state = restored_audible_volume_state(mixer_controls)
+                if spoken_navigation_enabled and not was_effectively_muted:
+                    state = VolumeState(
+                        percent=max(fallback_percent, SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT),
+                        muted=False,
+                    )
+                    mute_blocked = True
+                else:
+                    state = toggle_mute(controls=mixer_controls)
+                    if was_effectively_muted and effective_muted(state.percent, state.muted):
+                        state = restored_audible_volume_state(mixer_controls)
                 fallback_percent = state.percent
                 fallback_muted = state.muted
                 frame = volume_frame_for_state(state)
@@ -1552,16 +1598,23 @@ def handle_oled_input_events(
                 resume_playback = resume_playback or (was_effectively_muted and not frame.is_muted)
             elif event.name == "show_ip":
                 frame = setup_address_frame()
+
         except AudioError as error:
             print(f"Volume control failed: {error}")
             if event.name == "volume":
                 fallback_percent = min(max(fallback_percent + event.steps * 5, 0), 100)
+                if spoken_navigation_enabled:
+                    fallback_percent = max(fallback_percent, SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT)
                 fallback_muted = False
                 frame = VolumeFrame(fallback_percent, muted=fallback_percent <= 0)
                 pause_playback = pause_playback or (not was_effectively_muted and frame.is_muted)
                 resume_playback = resume_playback or (was_effectively_muted and not frame.is_muted)
             elif event.name == "volume_click":
-                if was_effectively_muted and fallback_percent <= 0:
+                if spoken_navigation_enabled and not was_effectively_muted:
+                    fallback_muted = False
+                    fallback_percent = max(fallback_percent, SPOKEN_NAVIGATION_MIN_VOLUME_PERCENT)
+                    mute_blocked = True
+                elif was_effectively_muted and fallback_percent <= 0:
                     fallback_percent = DEFAULT_UNMUTE_VOLUME_PERCENT
                     fallback_muted = False
                 else:
@@ -1571,6 +1624,44 @@ def handle_oled_input_events(
                 resume_playback = resume_playback or (was_effectively_muted and not frame.is_muted)
             elif event.name == "show_ip":
                 frame = setup_address_frame()
+
+        if (
+            not mute_blocked
+            and event.name in {"volume", "volume_click"}
+            and isinstance(frame, VolumeFrame)
+        ):
+            speak_volume_state(
+                frame,
+                event.name,
+                was_effectively_muted,
+                previous_percent,
+                spoken_navigation_feedback,
+            )
+
+
+def speak_volume_state(
+    frame: VolumeFrame,
+    event_name: str,
+    was_effectively_muted: bool,
+    previous_percent: int,
+    feedback: Callable[[SpokenSelection], None] | None,
+) -> None:
+    if feedback is None:
+        return
+    if frame.is_muted:
+        feedback(SpokenSelection("Muted"))
+        return
+    if was_effectively_muted:
+        feedback(SpokenSelection(f"Volume {frame.percent} percent"))
+        return
+    if (
+        event_name == "volume_click"
+        or (
+            frame.percent != previous_percent
+            and frame.percent % SPOKEN_VOLUME_INTERVAL_PERCENT == 0
+        )
+    ):
+        feedback(SpokenSelection(f"Volume {frame.percent} percent"))
 
 
 def speak_changed_selection(
