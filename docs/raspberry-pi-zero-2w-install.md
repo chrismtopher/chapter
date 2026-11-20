@@ -164,6 +164,8 @@ Adafruit 5993 GND pad  (-)    -> Raspberry Pi GND
 
 Any 5 V branch for the amp should be taken from the fused 5 V side. Do not put the fuse in series with `GND`, `D+`, or `D-`.
 
+For a lever-connector option, the [power splice guide](visual-build-guide.md#make-the-two-splices-with-lever-connectors) shows which four wires go into the fused +5 V connector and which four go into the separate ground connector.
+
 Leave `D+`, `D-`, `CC`, and `SBU` unwired in the Chapter build. The Adafruit 5993 is used for 5 V power only.
 
 Adafruit documents this breakout's USB-C current arrangement for 5 V at up to 1.5 A, while Raspberry Pi recommends a 2 A-capable supply for a Zero 2 W by itself. The tested Chapter build normally remains within the breakout's limit, but the 5993 is the power-path constraint. If the Pi reports undervoltage, reboots at high volume, or behaves unreliably, stop using it until you replace the input path with a regulated 5 V solution rated for at least 2 A.

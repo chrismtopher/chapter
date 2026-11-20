@@ -28,7 +28,7 @@ Slide the SH1122 OLED up into the window from below. Look through the outside fa
 
 [![Complete wiring of the v5 player. The fused 5 V and ground splices feed the Pi, amp and LED. The component-side header shows every OLED, encoder and I²S connection. The speaker connects across the two amp outputs.](assets/chapter-v5-wiring.svg)](assets/chapter-v5-wiring.svg)
 
-[Open the full-size diagram](assets/chapter-v5-wiring.svg) · [Read the pin-by-pin tables](raspberry-pi-zero-2w-install.md#wire-the-hardware)
+[Open the full-size diagram](assets/chapter-v5-wiring.svg) · [Read the pin-by-pin tables](raspberry-pi-zero-2w-install.md#wire-the-hardware) · [Wire the two WAGO connectors](#make-the-two-splices-with-lever-connectors)
 
 With power disconnected, trace the five connections below.
 
@@ -41,6 +41,17 @@ With power disconnected, trace the five connections below.
 | Amp speaker **+** and **−** | Matching **+** and **−** on the 4 Ω speaker | Keep both speaker leads off ground. Leave amp `SD` / `SD_MODE` open. |
 
 The diagram uses physical pins **2** and **20** for the Pi power harness. The install guide also lists equivalent 5 V and ground pins. The 5993 power path is rated for up to **1.5 A**, including when used with a higher-capacity 5 V supply. [Power input notes](raspberry-pi-zero-2w-install.md#usb-c-power-port-and-fuse)
+
+### Make the two splices with lever connectors
+
+The dots along each power rail can be made with a single connector. If you use **two five-port WAGO 222-415 connectors**, every port in one connector is joined internally. With USB-C unplugged, label one connector **Fused +5 V** and the other **GND**. Each row below is one whole connector, with one wire per lever and the fifth port empty.
+
+| Connector | Feed wire | Pi wire | Amp wire | LED wire |
+| --- | --- | --- | --- | --- |
+| **Fused +5 V** | Output of the 1.5 A fuse | Physical pin 2 | `VIN` | White-marked (+) |
+| **GND** | `GND` pad on the 5993 | Physical pin 20 | `GND` | Black (−) |
+
+The 222-415 accepts the Dioramo LED’s fine 28 AWG wire. Its factory-tinned ends are only 8 mm long. Trim those tips and strip 9–10 mm of fresh copper for each lever. Lift the lever, insert the wire fully, close the lever and give the wire a gentle tug. Leave the LED’s inline resistor in place. Dry-fit both connectors with the cover resting on the shell to check clearance before final assembly. [WAGO datasheet](https://assets.cef.co.uk/downloads/pdg/wago_222-415_datasheet/wago_222-415_datasheet.pdf) · [Dioramo lead specification](https://dioramo.com/products/13240)
 
 ## Test the power harness
 

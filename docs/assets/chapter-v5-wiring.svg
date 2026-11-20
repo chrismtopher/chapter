@@ -87,7 +87,8 @@
 <path d="M752 253c0 -10 16 -10 16 0" class="gnd"/>
 <text x="35" y="320" class="label" text-anchor="start">Use only VBUS and GND.</text>
 <text x="35" y="343" class="small" text-anchor="start">Leave D+, D−, CC and SBU open.</text>
-<text x="35" y="370" class="small" text-anchor="start">The 5993 path is rated up to 1.5 A. The 3 mm LED has a built-in resistor and a white-marked positive lead.</text>
+<text x="35" y="362" class="small" text-anchor="start">The 5993 limit is 1.5 A. The LED has a built-in resistor and a white-marked positive lead.</text>
+<text x="35" y="382" class="label" text-anchor="start">Optional splices · One WAGO 222-415 for fused +5 V and a separate one for GND. Use four ports on each.</text>
 </g>
 <path d="M35 389H865" class="rule"/>
 <g id="pi-header">

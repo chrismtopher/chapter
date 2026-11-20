@@ -422,6 +422,17 @@
       <li>Branch USB-C <code>GND</code> to Pi <strong>physical pin 20</strong>, amp <code>GND</code> and LED <strong>−</strong>. On the prewired Dioramo 13240, the white-marked lead is positive and the black lead is negative. Insulate the splices.</li>
     </ol>
     <details open>
+      <summary>Build tip · Two WAGO connectors for the power branches</summary>
+      <div class="chapter-detail-panel">
+        <p>Each five-port WAGO 222-415 joins all its ports together. Unplug USB-C and label the two connectors before fitting one wire under each lever.</p>
+        <ul class="chapter-guide">
+          <li><strong>Fused +5 V</strong> joins the fuse output, Pi pin 2, amp <code>VIN</code> and the LED’s white-marked (+) lead.</li>
+          <li><strong>GND</strong> joins the 5993 <code>GND</code> pad, Pi pin 20, amp <code>GND</code> and the LED’s black (−) lead.</li>
+        </ul>
+        <p>Leave the fifth port empty on each. The 222-415 accepts the LED’s 28 AWG leads. Trim the factory-tinned tips, strip 9–10 mm of fresh copper, insert fully and close each lever. Give each wire a gentle tug and check that both connectors clear the case lid.</p>
+      </div>
+    </details>
+    <details open>
       <summary>Meter check before connecting the Pi</summary>
       <div class="chapter-detail-panel">
         <figure class="chapter-figure">
