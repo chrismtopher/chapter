@@ -95,6 +95,8 @@ bash install-raspberry-pi.sh
 
 Power the Pi off before wiring. Disconnect power, then wire the parts.
 
+The [illustrated v5 build guide](visual-build-guide.md) shows where each board fits in the case. Use the [complete wiring diagram](assets/chapter-v5-wiring.svg) to trace all the leads together, then [test the power harness](visual-build-guide.md#test-the-power-harness) before connecting it to the Pi.
+
 All `GPIO` numbers below use Raspberry Pi BCM numbering. The separate `Physical Pin` column identifies the numbered position on the 40-pin header. Do not confuse the two numbering systems.
 
 ### OLED

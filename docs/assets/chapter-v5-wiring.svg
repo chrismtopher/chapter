@@ -1,0 +1,301 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1300" width="900" height="1300" role="img" aria-labelledby="wiring-title wiring-description">
+<title id="wiring-title">Chapter Player v5 complete wiring diagram</title>
+<desc id="wiring-description">Read from top to bottom. Two power rails feed the Pi, amp and indicator. The middle shows every used physical header pin and its remote terminal. Pin 1 splits to two devices. The speaker connects only to the amplifier outputs. The install guide contains the same connections in text.</desc>
+<style>
+  text { font-family: "Helvetica Neue", Arial, sans-serif; fill: #172e35; }
+  .kicker, .caption { font-size: 14px; font-weight: 600; letter-spacing: 1.2px; }
+  .kicker { fill: #20605f; }
+  .title { font-size: 38px; font-weight: 700; }
+  .section { font-size: 24px; font-weight: 700; }
+  .body, .label, .small { font-size: 16px; }
+  .label { font-weight: 600; }
+  .small, .caption { fill: #435b62; }
+  .pin { font-size: 15px; font-weight: 700; }
+  .terminal, .outer, .board, .fuse, .dot5, .dot0, .dot3, .unused { stroke-width: 1.3; }
+  .outer, .terminal, .fuse { fill: white; stroke: #587276; }
+  .board { fill: #e4f1ed; stroke: #6b8882; }
+  .unused { fill: #edf4f2; stroke: #aac0ba; }
+  .signal, .five, .gnd, .three, .audio, .rule { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .signal, .audio { stroke: #206b79; stroke-width: 2; }
+  .five { stroke: #ae3a24; stroke-width: 3; }
+  .gnd { stroke: #39464f; stroke-width: 2.4; }
+  .three { stroke: #7a4781; stroke-width: 2.4; }
+  .rule { stroke: #c8d7d3; stroke-width: 1; }
+  .dot5 { fill: #ae3a24; stroke: #ae3a24; }
+  .dot0 { fill: #39464f; stroke: #39464f; }
+  .dot3 { fill: #7a4781; stroke: #7a4781; }
+</style>
+<rect width="900" height="1300" fill="#fff"/>
+
+<text x="35" y="33" class="kicker" text-anchor="start">CHAPTER PLAYER   /   v5 CASE</text>
+<text x="35" y="78" class="title" text-anchor="start">Complete wiring</text>
+<text x="35" y="106" class="body" text-anchor="start">Match the printed terminal labels. A dot joins wires. An arch crosses a wire without joining it.</text>
+<path d="M35 124H865" class="rule"/>
+<g id="power-harness">
+<text x="35" y="158" class="section" text-anchor="start">USB-C power, fuse and indicator</text>
+<rect x="35" y="180" width="128" height="93" rx="8" class="board"/>
+<text x="47" y="202" class="label" text-anchor="start">Adafruit 5993</text>
+<text x="148" y="228" class="label" text-anchor="end">VBUS</text>
+<text x="148" y="258" class="label" text-anchor="end">GND</text>
+<circle cx="163" cy="223" r="3" class="terminal"/>
+<circle cx="163" cy="253" r="3" class="terminal"/>
+<path d="M166 223H201m84 0h475" class="five"/>
+<rect x="201" y="215" width="84" height="16" rx="3" class="fuse"/>
+<path d="M205 223h76" class="five"/>
+<text x="243" y="203" class="label" text-anchor="middle">1.5 A fast-blow</text>
+<text x="243" y="246" class="small" text-anchor="middle">5 × 20 mm fuse</text>
+<path d="M166 253H814" class="gnd"/>
+<path d="M420 223V278" class="five"/>
+<path d="M474 253V278" class="gnd"/>
+<circle cx="420" cy="223" r="3.5" class="dot5"/>
+<circle cx="474" cy="253" r="3.5" class="dot0"/>
+<rect x="384" y="278" width="126" height="58" rx="5" class="outer"/>
+<circle cx="420" cy="278" r="3" class="terminal"/>
+<circle cx="474" cy="278" r="3" class="terminal"/>
+<text x="417" y="300" class="pin" text-anchor="middle">Pin 2</text>
+<text x="477" y="300" class="pin" text-anchor="middle">Pin 20</text>
+<text x="447" y="324" class="pin" text-anchor="middle">Pi Zero 2 W</text>
+<path d="M590 223V278" class="five"/>
+<path d="M644 253V278" class="gnd"/>
+<circle cx="590" cy="223" r="3.5" class="dot5"/>
+<circle cx="644" cy="253" r="3.5" class="dot0"/>
+<rect x="554" y="278" width="126" height="58" rx="5" class="outer"/>
+<circle cx="590" cy="278" r="3" class="terminal"/>
+<circle cx="644" cy="278" r="3" class="terminal"/>
+<text x="587" y="300" class="pin" text-anchor="middle">VIN</text>
+<text x="647" y="300" class="pin" text-anchor="middle">GND</text>
+<text x="617" y="324" class="pin" text-anchor="middle">MAX98357A</text>
+<path d="M760 223V278" class="five"/>
+<path d="M814 253V278" class="gnd"/>
+<rect x="724" y="278" width="126" height="58" rx="5" class="outer"/>
+<circle cx="760" cy="278" r="3" class="terminal"/>
+<circle cx="814" cy="278" r="3" class="terminal"/>
+<text x="757" y="300" class="pin" text-anchor="middle">White +</text>
+<text x="817" y="300" class="pin" text-anchor="middle">Black −</text>
+<text x="787" y="324" class="pin" text-anchor="middle">Dioramo 13240</text>
+<rect x="414" y="244" width="12" height="12" fill="white"/>
+<path d="M420 243V257" class="five"/>
+<path d="M412 253c0 -10 16 -10 16 0" fill="none" stroke="white" stroke-width="6"/>
+<path d="M412 253c0 -10 16 -10 16 0" class="gnd"/>
+<rect x="584" y="244" width="12" height="12" fill="white"/>
+<path d="M590 243V257" class="five"/>
+<path d="M582 253c0 -10 16 -10 16 0" fill="none" stroke="white" stroke-width="6"/>
+<path d="M582 253c0 -10 16 -10 16 0" class="gnd"/>
+<rect x="754" y="244" width="12" height="12" fill="white"/>
+<path d="M760 243V257" class="five"/>
+<path d="M752 253c0 -10 16 -10 16 0" fill="none" stroke="white" stroke-width="6"/>
+<path d="M752 253c0 -10 16 -10 16 0" class="gnd"/>
+<text x="35" y="320" class="label" text-anchor="start">Use only VBUS and GND.</text>
+<text x="35" y="343" class="small" text-anchor="start">Leave D+, D−, CC and SBU open.</text>
+<text x="35" y="370" class="small" text-anchor="start">The 5993 path is rated up to 1.5 A. The 3 mm LED has a built-in resistor and a white-marked positive lead.</text>
+</g>
+<path d="M35 389H865" class="rule"/>
+<g id="pi-header">
+<text x="35" y="424" class="section" text-anchor="start">Raspberry Pi Zero 2 W / WH header</text>
+<text x="35" y="450" class="body" text-anchor="start">Component side facing you, microSD at the top, header on the right. The square pad marks pin 1.</text>
+<text x="35" y="485" class="caption" text-anchor="start">REMOTE TERMINAL</text>
+<text x="325" y="485" class="caption" text-anchor="end">PI SIGNAL</text>
+<text x="445" y="485" class="caption" text-anchor="middle">PHYSICAL</text>
+<text x="560" y="485" class="caption" text-anchor="start">PI SIGNAL</text>
+<text x="686" y="485" class="caption" text-anchor="start">REMOTE TERMINAL</text>
+<rect x="391" y="500" width="108" height="470" rx="10" class="board"/>
+<path d="M407 516H360V508H337 M360 516V529H337" class="three"/>
+<circle cx="360" cy="516" r="3" class="dot3"/>
+<circle cx="336" cy="508" r="3" class="terminal"/>
+<text x="35" y="513" class="label" text-anchor="start">OLED · VCC</text>
+<text x="325" y="513" class="small" text-anchor="end">3.3 V</text>
+<circle cx="336" cy="529" r="3" class="terminal"/>
+<text x="35" y="534" class="label" text-anchor="start">Select · +</text>
+<text x="325" y="534" class="small" text-anchor="end">3.3 V</text>
+<rect x="407" y="507" width="28" height="18" rx="1" class="terminal"/>
+<text x="421" y="521" class="pin" text-anchor="middle">1</text>
+<path d="M483 516H545" class="five"/>
+<circle cx="546" cy="516" r="3" class="terminal"/>
+<text x="560" y="521" class="small" text-anchor="start">5 V</text>
+<text x="686" y="521" class="label" text-anchor="start">Fused 5 V splice</text>
+<rect x="455" y="507" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="521" class="pin" text-anchor="middle">2</text>
+<rect x="407" y="530" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="544" class="pin" text-anchor="middle">3</text>
+<rect x="455" y="530" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="544" class="pin" text-anchor="middle">4</text>
+<rect x="407" y="553" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="567" class="pin" text-anchor="middle">5</text>
+<path d="M483 562H545" class="gnd"/>
+<circle cx="546" cy="562" r="3" class="terminal"/>
+<text x="560" y="567" class="small" text-anchor="start">GND</text>
+<text x="686" y="567" class="label" text-anchor="start">OLED · GND</text>
+<rect x="455" y="553" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="567" class="pin" text-anchor="middle">6</text>
+<rect x="407" y="576" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="590" class="pin" text-anchor="middle">7</text>
+<rect x="455" y="576" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="590" class="pin" text-anchor="middle">8</text>
+<path d="M407 608H337" class="gnd"/>
+<circle cx="336" cy="608" r="3" class="terminal"/>
+<text x="35" y="613" class="label" text-anchor="start">Select · GND</text>
+<text x="325" y="613" class="small" text-anchor="end">GND</text>
+<rect x="407" y="599" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="613" class="pin" text-anchor="middle">9</text>
+<rect x="455" y="599" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="613" class="pin" text-anchor="middle">10</text>
+<rect x="407" y="622" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="636" class="pin" text-anchor="middle">11</text>
+<path d="M483 631H545" class="signal"/>
+<circle cx="546" cy="631" r="3" class="terminal"/>
+<text x="560" y="636" class="small" text-anchor="start">BCM18</text>
+<text x="686" y="636" class="label" text-anchor="start">Amp · BCLK</text>
+<rect x="455" y="622" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="636" class="pin" text-anchor="middle">12</text>
+<rect x="407" y="645" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="659" class="pin" text-anchor="middle">13</text>
+<path d="M483 654H545" class="gnd"/>
+<circle cx="546" cy="654" r="3" class="terminal"/>
+<text x="560" y="659" class="small" text-anchor="start">GND</text>
+<text x="686" y="659" class="label" text-anchor="start">Volume · GND</text>
+<rect x="455" y="645" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="659" class="pin" text-anchor="middle">14</text>
+<rect x="407" y="668" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="682" class="pin" text-anchor="middle">15</text>
+<rect x="455" y="668" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="682" class="pin" text-anchor="middle">16</text>
+<path d="M407 700H337" class="three"/>
+<circle cx="336" cy="700" r="3" class="terminal"/>
+<text x="35" y="705" class="label" text-anchor="start">Volume · +</text>
+<text x="325" y="705" class="small" text-anchor="end">3.3 V</text>
+<rect x="407" y="691" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="705" class="pin" text-anchor="middle">17</text>
+<path d="M483 700H545" class="signal"/>
+<circle cx="546" cy="700" r="3" class="terminal"/>
+<text x="560" y="705" class="small" text-anchor="start">BCM24</text>
+<text x="686" y="705" class="label" text-anchor="start">OLED · DC</text>
+<rect x="455" y="691" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="705" class="pin" text-anchor="middle">18</text>
+<path d="M407 723H337" class="signal"/>
+<circle cx="336" cy="723" r="3" class="terminal"/>
+<text x="35" y="728" class="label" text-anchor="start">OLED · SDA / DIN</text>
+<text x="325" y="728" class="small" text-anchor="end">BCM10</text>
+<rect x="407" y="714" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="728" class="pin" text-anchor="middle">19</text>
+<path d="M483 723H545" class="gnd"/>
+<circle cx="546" cy="723" r="3" class="terminal"/>
+<text x="560" y="728" class="small" text-anchor="start">GND</text>
+<text x="686" y="728" class="label" text-anchor="start">USB-C GND splice</text>
+<rect x="455" y="714" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="728" class="pin" text-anchor="middle">20</text>
+<rect x="407" y="737" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="751" class="pin" text-anchor="middle">21</text>
+<path d="M483 746H545" class="signal"/>
+<circle cx="546" cy="746" r="3" class="terminal"/>
+<text x="560" y="751" class="small" text-anchor="start">BCM25</text>
+<text x="686" y="751" class="label" text-anchor="start">OLED · RES / RST</text>
+<rect x="455" y="737" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="751" class="pin" text-anchor="middle">22</text>
+<path d="M407 769H337" class="signal"/>
+<circle cx="336" cy="769" r="3" class="terminal"/>
+<text x="35" y="774" class="label" text-anchor="start">OLED · SCL / CLK</text>
+<text x="325" y="774" class="small" text-anchor="end">BCM11</text>
+<rect x="407" y="760" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="774" class="pin" text-anchor="middle">23</text>
+<path d="M483 769H545" class="signal"/>
+<circle cx="546" cy="769" r="3" class="terminal"/>
+<text x="560" y="774" class="small" text-anchor="start">BCM8</text>
+<text x="686" y="774" class="label" text-anchor="start">OLED · CS</text>
+<rect x="455" y="760" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="774" class="pin" text-anchor="middle">24</text>
+<rect x="407" y="783" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="797" class="pin" text-anchor="middle">25</text>
+<rect x="455" y="783" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="797" class="pin" text-anchor="middle">26</text>
+<rect x="407" y="806" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="820" class="pin" text-anchor="middle">27</text>
+<rect x="455" y="806" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="820" class="pin" text-anchor="middle">28</text>
+<path d="M407 838H337" class="signal"/>
+<circle cx="336" cy="838" r="3" class="terminal"/>
+<text x="35" y="843" class="label" text-anchor="start">Select · CLK</text>
+<text x="325" y="843" class="small" text-anchor="end">BCM5</text>
+<rect x="407" y="829" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="843" class="pin" text-anchor="middle">29</text>
+<rect x="455" y="829" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="843" class="pin" text-anchor="middle">30</text>
+<path d="M407 861H337" class="signal"/>
+<circle cx="336" cy="861" r="3" class="terminal"/>
+<text x="35" y="866" class="label" text-anchor="start">Select · DT</text>
+<text x="325" y="866" class="small" text-anchor="end">BCM6</text>
+<rect x="407" y="852" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="866" class="pin" text-anchor="middle">31</text>
+<path d="M483 861H545" class="signal"/>
+<circle cx="546" cy="861" r="3" class="terminal"/>
+<text x="560" y="866" class="small" text-anchor="start">BCM12</text>
+<text x="686" y="866" class="label" text-anchor="start">Volume · CLK</text>
+<rect x="455" y="852" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="866" class="pin" text-anchor="middle">32</text>
+<path d="M407 884H337" class="signal"/>
+<circle cx="336" cy="884" r="3" class="terminal"/>
+<text x="35" y="889" class="label" text-anchor="start">Select · SW</text>
+<text x="325" y="889" class="small" text-anchor="end">BCM13</text>
+<rect x="407" y="875" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="889" class="pin" text-anchor="middle">33</text>
+<rect x="455" y="875" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="889" class="pin" text-anchor="middle">34</text>
+<path d="M407 907H337" class="signal"/>
+<circle cx="336" cy="907" r="3" class="terminal"/>
+<text x="35" y="912" class="label" text-anchor="start">Amp · LRC / LRCLK</text>
+<text x="325" y="912" class="small" text-anchor="end">BCM19</text>
+<rect x="407" y="898" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="912" class="pin" text-anchor="middle">35</text>
+<path d="M483 907H545" class="signal"/>
+<circle cx="546" cy="907" r="3" class="terminal"/>
+<text x="560" y="912" class="small" text-anchor="start">BCM16</text>
+<text x="686" y="912" class="label" text-anchor="start">Volume · DT</text>
+<rect x="455" y="898" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="912" class="pin" text-anchor="middle">36</text>
+<path d="M407 930H337" class="signal"/>
+<circle cx="336" cy="930" r="3" class="terminal"/>
+<text x="35" y="935" class="label" text-anchor="start">Volume · SW</text>
+<text x="325" y="935" class="small" text-anchor="end">BCM26</text>
+<rect x="407" y="921" width="28" height="18" rx="8" class="terminal"/>
+<text x="421" y="935" class="pin" text-anchor="middle">37</text>
+<rect x="455" y="921" width="28" height="18" rx="8" class="unused"/>
+<text x="469" y="935" class="pin" text-anchor="middle">38</text>
+<rect x="407" y="944" width="28" height="18" rx="8" class="unused"/>
+<text x="421" y="958" class="pin" text-anchor="middle">39</text>
+<path d="M483 953H545" class="signal"/>
+<circle cx="546" cy="953" r="3" class="terminal"/>
+<text x="560" y="958" class="small" text-anchor="start">BCM21</text>
+<text x="686" y="958" class="label" text-anchor="start">Amp · DIN</text>
+<rect x="455" y="944" width="28" height="18" rx="8" class="terminal"/>
+<text x="469" y="958" class="pin" text-anchor="middle">40</text>
+<text x="35" y="997" class="small" text-anchor="start">Select is the left KY-040 and Volume the right, viewed from the front. Both knobs and the SH1122 OLED use 3.3 V.</text>
+</g>
+<path d="M35 1016H865" class="rule"/>
+<g id="speaker">
+<text x="35" y="1052" class="section" text-anchor="start">Amplifier to speaker</text>
+<rect x="38" y="1070" width="210" height="77" rx="7" class="board"/>
+<text x="52" y="1114" class="label" text-anchor="start">MAX98357A</text>
+<text x="235" y="1098" class="label" text-anchor="end">SPK+</text>
+<circle cx="248" cy="1093" r="3" class="terminal"/>
+<path d="M252 1093H550" class="audio"/>
+<text x="235" y="1128" class="label" text-anchor="end">SPK−</text>
+<circle cx="248" cy="1123" r="3" class="terminal"/>
+<path d="M252 1123H550" class="audio"/>
+<rect x="553" y="1070" width="87" height="78" rx="6" class="outer"/>
+<circle cx="603" cy="1109" r="29" class="terminal"/>
+<circle cx="603" cy="1109" r="18" class="terminal"/>
+<circle cx="553" cy="1093" r="3" class="terminal"/>
+<text x="566" y="1098" class="label" text-anchor="middle">+</text>
+<circle cx="553" cy="1123" r="3" class="terminal"/>
+<text x="566" y="1128" class="label" text-anchor="middle">−</text>
+<text x="659" y="1103" class="label" text-anchor="start">Visaton FRWS 5</text>
+<text x="659" y="1127" class="small" text-anchor="start">4 Ω speaker</text>
+<text x="35" y="1177" class="body" text-anchor="start">Keep both speaker leads off ground. Leave amp SD / SD_MODE open.</text>
+<text x="35" y="1203" class="small" text-anchor="start">Disconnect USB-C before fitting leads. Keep the Pi micro-USB power input empty during case-powered use.</text>
+</g>
+<path d="M35 1220H865" class="rule"/>
+<g id="meter-check">
+<text x="35" y="1249" class="label" text-anchor="start">Before connecting the Pi</text>
+<text x="35" y="1272" class="body" text-anchor="start">With Pi, amp and LED disconnected, power just the harness. Use DC volts, red to the pin 2 lead,</text>
+<text x="35" y="1292" class="body" text-anchor="start">black to the pin 20 lead. Expect about +5 V. Unplug USB-C before attaching the loads.</text>
+</g>
+</svg>
