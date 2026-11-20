@@ -10,6 +10,8 @@ Printable STL files for the Chapter Player enclosure.
 
 ## Assembly Diagrams
 
+For the build sequence, wiring and open-case checks, follow the [illustrated v5 build guide](../../docs/visual-build-guide.md).
+
 - [case-top-select-volume-reference.png](case-top-select-volume-reference.png) - CAD reference showing the top of the case and the `SELECT` and `VOLUME` labels
 - [case-front-cover-backside-oled-layout.jpg](case-front-cover-backside-oled-layout.jpg) - annotated CAD view of the back side of the front cover showing OLED installation
 - [case-back-interior-layout.jpg](case-back-interior-layout.jpg) - annotated CAD view into the case back showing heat press insert bosses and hardware mounting areas

@@ -40,6 +40,8 @@ For the complete hardware, flashing, wiring, setup, and troubleshooting walkthro
 
 ## Hardware
 
+Building the v5 enclosure? Follow the [illustrated build guide](docs/visual-build-guide.md) from mounting the boards to first playback. If the parts are already wired, use the [complete wiring diagram](docs/assets/chapter-v5-wiring.svg) and [power checks](docs/visual-build-guide.md#test-the-power-harness) before connecting the Pi.
+
 Recommended build:
 
 - Raspberry Pi Zero 2 WH, or Raspberry Pi Zero 2 W with a soldered 40-pin header

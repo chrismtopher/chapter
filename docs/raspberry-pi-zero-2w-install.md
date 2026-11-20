@@ -95,6 +95,8 @@ bash install-raspberry-pi.sh
 
 Power the Pi off before wiring. Disconnect power, then wire the parts.
 
+The [illustrated v5 build guide](visual-build-guide.md) shows where each board fits in the case. Use the [complete wiring diagram](assets/chapter-v5-wiring.svg) to trace all the leads together, then [test the power harness](visual-build-guide.md#test-the-power-harness) before connecting it to the Pi.
+
 All `GPIO` numbers below use Raspberry Pi BCM numbering. The separate `Physical Pin` column identifies the numbered position on the 40-pin header. Do not confuse the two numbering systems.
 
 ### OLED
@@ -161,6 +163,8 @@ Adafruit 5993 GND pad  (-)    -> Raspberry Pi GND
 ```
 
 Any 5 V branch for the amp should be taken from the fused 5 V side. Do not put the fuse in series with `GND`, `D+`, or `D-`.
+
+For a lever-connector option, the [power splice guide](visual-build-guide.md#make-the-two-splices-with-lever-connectors) shows which four wires go into the fused +5 V connector and which four go into the separate ground connector.
 
 Leave `D+`, `D-`, `CC`, and `SBU` unwired in the Chapter build. The Adafruit 5993 is used for 5 V power only.
 
